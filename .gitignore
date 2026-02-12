@@ -1,0 +1,3 @@
+# Generated dependency/build directories (anywhere in this repo)
+node_modules/
+target/

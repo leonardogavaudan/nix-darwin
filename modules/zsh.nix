@@ -3,16 +3,18 @@
 {
   programs.zsh = {
     enable = true;
+    dotDir = "${config.xdg.configHome}/zsh";
 
     # ── Environment variables (written to .zshenv) ──────────────
     sessionVariables = {
-      EDITOR = "nvim";
+      EDITOR = "vim";
       XDG_CONFIG_HOME = "$HOME/.config";
       AWS_CONFIG_FILE = "$HOME/.config/aws/config";
       AWS_SHARED_CREDENTIALS_FILE = "$HOME/.config/aws/credentials";
       GOPATH = "$HOME/.config/go";
       CARGO_HOME = "$HOME/.config/cargo";
       RUSTUP_HOME = "$HOME/.config/rustup";
+      CODEX_HOME = "$HOME/.config/codex";
     };
 
     # ── Aliases ─────────────────────────────────────────────────
@@ -20,12 +22,13 @@
       ".." = "cd ..";
       "..." = "cd ../..";
       ll = "ls -la | sort -k 1";
-      vim = "nvim";
       python = "python3";
       pip = "pip3";
-      cc = "tmux new-session claude";
+      tx = "tmux new-session codex";
+      tc = "tmux new-session claude";
       tn = "tmux new-session";
-      pt = "tmux new-session pi";
+      tp = "tmux new-session pi";
+      sync-agents = "cargo run --manifest-path ~/.config/nix-darwin/scripts/agent-config-sync/Cargo.toml --";
     };
 
     # ── .zprofile (login shell) ─────────────────────────────────
@@ -35,6 +38,9 @@
 
     # ── .zshenv additions (after sessionVariables) ──────────────
     envExtra = ''
+      # Ensure Codex always uses XDG location even when HM session vars are pre-sourced.
+      export CODEX_HOME="$HOME/.config/codex"
+
       # Cargo/Rust environment
       if [ -f "$HOME/.config/cargo/env" ]; then
         . "$HOME/.config/cargo/env"
@@ -42,9 +48,9 @@
     '';
 
     # ── .zshrc (interactive shell) ──────────────────────────────
-    initExtra = ''
+    initContent = ''
       # PATH
-      export PATH="$HOME/.local/bin:$HOME/.bun/bin:$GOPATH/bin:$PATH"
+      export PATH="$HOME/.local/bin:$HOME/.cache/.bun/bin:$HOME/.bun/bin:$GOPATH/bin:$PATH"
 
       # Load secrets and sync to tmux environment
       if [ -f ~/.secrets ]; then

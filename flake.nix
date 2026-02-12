@@ -19,9 +19,12 @@
 
       environment.systemPackages = [
         # CLI tools
+        pkgs.ast-grep
         pkgs.awscli2
         pkgs.btop
         pkgs.bun
+        pkgs.difftastic
+        pkgs.duckdb
         pkgs.duti
         pkgs.podman-compose
         pkgs.eza
@@ -32,17 +35,22 @@
         pkgs.ghc
         pkgs.go
         pkgs.google-cloud-sdk
+        pkgs.imagemagick
         pkgs.inetutils        # telnet
         pkgs.mas
+        pkgs.miller
         pkgs.luarocks
-        pkgs.neovim
         pkgs.netlify-cli
         pkgs.nodejs
         pkgs.ocaml
-        pkgs.opencode
+        pkgs.pandoc
         pkgs.postgresql_14
+        pkgs.pup
         pkgs.ripgrep
         pkgs.ruff
+        pkgs.cargo
+        pkgs.rustc
+        pkgs.shellcheck
         pkgs.sox
         pkgs.stylua
         pkgs.terraform
@@ -51,6 +59,7 @@
         pkgs.turso-cli
         pkgs.watchman
         pkgs.wget
+        pkgs.yq-go
         pkgs.zlib
 
         # GUI apps
@@ -74,6 +83,7 @@
 
         brews = [
           "mole"
+          "opencode"
           "podman"
           "cloudflare-wrangler"
         ];
@@ -95,7 +105,6 @@
           "raycast"
           "signal"
           "spotify"
-          "tailscale"
           "warp"
         ];
       };
@@ -137,6 +146,7 @@
       ];
     };
 
-    darwinPackages = self.darwinConfigurations."Leonardos-MacBook-Pro".pkgs;
+    legacyPackages.aarch64-darwin =
+      self.darwinConfigurations."Leonardos-MacBook-Pro".pkgs;
   };
 }

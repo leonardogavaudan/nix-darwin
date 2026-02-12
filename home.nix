@@ -5,6 +5,7 @@
     ./modules/zsh.nix
     ./modules/tmux.nix
     ./modules/ghostty.nix
+    ./modules/resource-monitor.nix
   ];
 
   home.username = "leonardogavaudan";
