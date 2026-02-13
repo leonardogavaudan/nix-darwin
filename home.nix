@@ -15,5 +15,14 @@
   # Required for xdg.configFile on macOS
   xdg.enable = true;
 
+  # Single source of truth for user-level PATH entries.
+  home.sessionPath = [
+    "$HOME/.local/bin"
+    "$HOME/.cache/.bun/bin"
+    "$HOME/.bun/bin"
+    "$HOME/.config/go/bin"
+    "$HOME/.config/cargo/bin"
+  ];
+
   programs.home-manager.enable = true;
 }

@@ -49,9 +49,6 @@
 
     # ── .zshrc (interactive shell) ──────────────────────────────
     initContent = ''
-      # PATH
-      export PATH="$HOME/.local/bin:$HOME/.cache/.bun/bin:$HOME/.bun/bin:$GOPATH/bin:$PATH"
-
       # Load secrets and sync to tmux environment
       if [ -f ~/.secrets ]; then
         source ~/.secrets
