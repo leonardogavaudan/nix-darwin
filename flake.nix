@@ -44,6 +44,7 @@
         pkgs.nodejs
         pkgs.ocaml
         pkgs.pandoc
+        pkgs.tectonic
         pkgs.postgresql_14
         pkgs.pup
         pkgs.ripgrep
