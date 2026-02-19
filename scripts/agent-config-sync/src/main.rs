@@ -8,6 +8,7 @@ struct Config {
     source: PathBuf,
     claude_out: PathBuf,
     codex_out: PathBuf,
+    pi_out: PathBuf,
 }
 
 fn main() {
@@ -25,26 +26,33 @@ fn run() -> Result<(), String> {
     let shared = extract_section(&content, "SHARED")?;
     let claude = extract_section(&content, "CLAUDE")?;
     let codex = extract_section(&content, "CODEX")?;
+    let pi = extract_optional_section(&content, "PI")?;
 
     let claude_doc = render_document("CLAUDE.md", &config.source, &shared, &claude);
     let codex_doc = render_document("AGENTS.md", &config.source, &shared, &codex);
+    let pi_doc = render_document("AGENTS.md", &config.source, &shared, &pi);
 
     write_file(&config.claude_out, &claude_doc)
         .map_err(|err| format!("failed to write {}: {err}", config.claude_out.display()))?;
     write_file(&config.codex_out, &codex_doc)
         .map_err(|err| format!("failed to write {}: {err}", config.codex_out.display()))?;
+    write_file(&config.pi_out, &pi_doc)
+        .map_err(|err| format!("failed to write {}: {err}", config.pi_out.display()))?;
 
     println!("Wrote {}", config.claude_out.display());
     println!("Wrote {}", config.codex_out.display());
+    println!("Wrote {}", config.pi_out.display());
     Ok(())
 }
 
 fn parse_args() -> Result<Config, String> {
     let home = env::var("HOME").map_err(|_| "HOME is not set".to_string())?;
     let codex_home = env::var("CODEX_HOME").unwrap_or_else(|_| format!("{home}/.config/codex"));
+    let pi_home = env::var("PI_CODING_AGENT_DIR").unwrap_or_else(|_| format!("{home}/.pi/agent"));
     let mut source = PathBuf::from(format!("{home}/.config/.agents/AGENTS.md"));
     let mut claude_out = PathBuf::from(format!("{home}/.claude/CLAUDE.md"));
     let mut codex_out = PathBuf::from(format!("{codex_home}/AGENTS.md"));
+    let mut pi_out = PathBuf::from(format!("{pi_home}/AGENTS.md"));
 
     let mut args = env::args().skip(1);
     while let Some(arg) = args.next() {
@@ -67,6 +75,12 @@ fn parse_args() -> Result<Config, String> {
                     .ok_or_else(|| "missing value for --codex-out".to_string())?;
                 codex_out = PathBuf::from(value);
             }
+            "--pi-out" => {
+                let value = args
+                    .next()
+                    .ok_or_else(|| "missing value for --pi-out".to_string())?;
+                pi_out = PathBuf::from(value);
+            }
             "-h" | "--help" => {
                 print_help();
                 process::exit(0);
@@ -83,6 +97,7 @@ fn parse_args() -> Result<Config, String> {
         source,
         claude_out,
         codex_out,
+        pi_out,
     })
 }
 
@@ -92,12 +107,13 @@ fn print_help() {
     println!("Generate agent-specific config files from a canonical AGENTS.md.");
     println!();
     println!("USAGE:");
-    println!("  agent-config-sync [--source PATH] [--claude-out PATH] [--codex-out PATH]");
+    println!("  agent-config-sync [--source PATH] [--claude-out PATH] [--codex-out PATH] [--pi-out PATH]");
     println!();
     println!("DEFAULTS:");
     println!("  --source     $HOME/.config/.agents/AGENTS.md");
     println!("  --claude-out $HOME/.claude/CLAUDE.md");
     println!("  --codex-out  $CODEX_HOME/AGENTS.md or $HOME/.config/codex/AGENTS.md");
+    println!("  --pi-out     $PI_CODING_AGENT_DIR/AGENTS.md or $HOME/.pi/agent/AGENTS.md");
 }
 
 fn extract_section(content: &str, name: &str) -> Result<String, String> {
@@ -114,6 +130,15 @@ fn extract_section(content: &str, name: &str) -> Result<String, String> {
         .ok_or_else(|| format!("missing marker: {end_marker}"))?;
 
     Ok(tail[..end_rel_index].trim_matches('\n').to_string())
+}
+
+fn extract_optional_section(content: &str, name: &str) -> Result<String, String> {
+    let start_marker = format!("<!-- BEGIN {name} -->");
+    if !content.contains(&start_marker) {
+        return Ok(String::new());
+    }
+
+    extract_section(content, name)
 }
 
 fn render_document(title: &str, source: &Path, shared: &str, specific: &str) -> String {
