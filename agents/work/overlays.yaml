@@ -1,0 +1,98 @@
+# Agent instruction overlays
+# Each target can have:
+#   - section_replacements: replace entire sections by heading
+#   - append: add content at the end
+#
+# Section replacements use the heading name (without ##) as key
+
+targets:
+  pi:
+    output: ~/.pi/agent/AGENTS.md
+    append: |
+
+      ---
+
+      ## Pi Browser Interaction Rule
+
+      - For browser-based tasks (CircleCI approvals, GitHub/Jira/Confluence UI actions, opening tabs, clicking, typing), always load and follow the `browser-pi` skill from `~/.pi/agent/skills/browser-pi/SKILL.md` first.
+      - Treat `browser-pi` as the default path for interactive browser work in Pi.
+      - If browser tools are unavailable or simulated, explicitly say so and fall back to opening URLs directly with `open`.
+
+      ## Pi Multi-Agent Browser Isolation
+
+      - Assume multiple agents may share the same browser session.
+      - Never rely on the implicit "active tab" for navigation/eval actions.
+      - Always identify and target a specific tab before acting:
+        1. List tabs with `browser-tabs.js`
+        2. Use `--tab <index>` or `--url-match <substring>` on browser commands
+      - Before any click/type/navigation that changes page state, state which tab index/URL is being targeted.
+      - Do not close, repurpose, or overwrite other tabs unless the user explicitly asks.
+      - Prefer opening a new tab for agent-specific work when there is ambiguity.
+
+  claude-code:
+    output: ~/.claude/CLAUDE.md
+    remove_sections:
+      - "Knowledge Vault"
+    section_replacements:
+      "Knowledge Discovery (Check Before Exploring)": |
+        Before grepping codebases or reading source files to understand something, ALWAYS:
+        1. Check `~/master/INDEX.md` for relevant vault docs
+        2. Search Confluence using MCP tools (`mcp__atlassian__confluence_search`)
+
+        **Triggers - do this when:**
+        - User asks about an Algolia system, feature, or concept
+        - Need to understand business logic or architecture
+        - Starting work in an unfamiliar area
+        - About to explore code to figure out "how does X work"
+
+      "Skills": |
+        Load relevant skills before taking action (GCP, GitHub, browser, worktrees, Jira, React, etc.).
+        Skills are in `~/.claude/skills/` - check descriptions to find the right one. Don't skip this step.
+
+      "CLAUDE.local.md Files": |
+        - Many repos contain a `CLAUDE.local.md` file (usually in `.claude/` directory) with personal notes, quick commands, gotchas, and repo-specific context
+        - **ALWAYS check for and read `CLAUDE.local.md`** when starting work in a repo - it contains hard-won knowledge that saves time
+        - These files are gitignored and contain user-specific workflows, not shared team docs
+
+    append: |
+
+      ---
+
+      # MCP Servers Available
+
+      These are the MCP (Model Context Protocol) servers I can use:
+
+      | Server | Purpose | Permissions |
+      |--------|---------|-------------|
+      | `atlassian` | Jira + Confluence | Read-only (search, get issues/pages) |
+      | `circleci` | CI/CD pipelines | Full access |
+      | `exa` | Web search, code search | Full access |
+      | `claude-in-chrome` | Browser automation | Full access |
+
+      ## Atlassian Tools (Read-Only)
+
+      **Confluence:**
+      - `mcp__atlassian__confluence_search` - Search pages
+      - `mcp__atlassian__confluence_get_page` - Get page content
+      - `mcp__atlassian__confluence_get_page_children` - Get child pages
+      - `mcp__atlassian__confluence_get_comments` - Get page comments
+
+      **Jira:**
+      - `mcp__atlassian__jira_search` - JQL search
+      - `mcp__atlassian__jira_get_issue` - Get issue details
+      - `mcp__atlassian__jira_get_board_issues` - Get board issues
+      - `mcp__atlassian__jira_get_sprint_issues` - Get sprint issues
+
+      ## Exa Tools
+      - `mcp__exa__web_search_exa` - Web search
+      - `mcp__exa__get_code_context_exa` - Code search
+
+      ## CircleCI Tools
+      - `mcp__circleci__get_build_failure_logs` - Get failure logs
+      - `mcp__circleci__get_latest_pipeline_status` - Pipeline status
+      - `mcp__circleci__run_pipeline` - Trigger pipelines
+
+  codex:
+    output: "$CODEX_HOME/AGENTS.md"
+    prepend: |
+      Note: These instructions are synced from layered sources in `~/.config/nix-darwin/agents/{shared,work}/AGENTS.md`. Codex uses `CODEX_HOME=~/.config/codex` on this machine.
