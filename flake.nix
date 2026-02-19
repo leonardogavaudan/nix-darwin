@@ -11,12 +11,7 @@
 
   outputs = inputs@{ self, nix-darwin, nixpkgs, home-manager }:
   let
-    configuration = { pkgs, ... }: {
-
-      # ============================================================
-      # PACKAGES (managed by Nix)
-      # ============================================================
-
+    personalConfiguration = { pkgs, ... }: {
       environment.systemPackages = [
         # CLI tools
         pkgs.ast-grep
@@ -36,7 +31,7 @@
         pkgs.go
         pkgs.google-cloud-sdk
         pkgs.imagemagick
-        pkgs.inetutils        # telnet
+        pkgs.inetutils
         pkgs.mas
         pkgs.miller
         pkgs.luarocks
@@ -72,10 +67,6 @@
         pkgs.rectangle
       ];
 
-      # ============================================================
-      # HOMEBREW (only for apps not in Nix)
-      # ============================================================
-
       homebrew = {
         enable = true;
         onActivation.autoUpdate = true;
@@ -110,13 +101,9 @@
         ];
       };
 
-      # ============================================================
-      # SYSTEM
-      # ============================================================
-
       nixpkgs.config.allowUnfree = true;
 
-      # Clean Homebrew cache after each rebuild
+      # Clean Homebrew cache after each rebuild.
       system.activationScripts.postActivation.text = ''
         echo "Cleaning Homebrew cache..."
         /opt/homebrew/bin/brew cleanup --prune=all 2>/dev/null || true
@@ -125,6 +112,7 @@
       nix.enable = false;
       nix.settings.experimental-features = "nix-command flakes";
 
+      system.configurationRevision = self.rev or self.dirtyRev or null;
       system.stateVersion = 6;
 
       networking.hostName = "Leonardos-MacBook-Pro";
@@ -132,17 +120,141 @@
       system.primaryUser = "leonardogavaudan";
       users.users.leonardogavaudan.home = "/Users/leonardogavaudan";
     };
+
+    workConfiguration = { pkgs, ... }: {
+      environment.systemPackages = [
+        pkgs.vim
+        pkgs.neovim
+        pkgs.yarn
+        pkgs.ripgrep
+        pkgs.fd
+        pkgs.jq
+        pkgs.mariadb.client
+        pkgs.tree
+        pkgs.hyperfine
+        pkgs.htop
+        pkgs.btop
+        pkgs.go
+        pkgs.golangci-lint
+        pkgs.graphviz
+        pkgs.grpcurl
+        pkgs.cue
+        pkgs.vale
+        pkgs.findutils
+        (pkgs.python3.withPackages (ps: [ ps.pyyaml ]))
+        pkgs.python310
+        pkgs.circleci-cli
+        pkgs.uv
+        pkgs.google-cloud-sql-proxy
+
+        pkgs.playwright-test
+        (pkgs.writeShellScriptBin "rustup" ''
+          exec ${pkgs.rustup}/bin/rustup "$@"
+        '')
+        pkgs.rustc
+        pkgs.cargo
+        pkgs.clippy
+        pkgs.rustfmt
+        pkgs.gleam
+        pkgs.erlang
+        pkgs.rebar3
+        pkgs.jujutsu
+        pkgs.yq-go
+        pkgs.miller
+        pkgs.gron
+      ];
+
+      nix.enable = false;
+      nixpkgs.config.allowUnfree = true;
+
+      homebrew = {
+        enable = true;
+        onActivation = {
+          cleanup = "zap";
+          autoUpdate = true;
+          upgrade = true;
+        };
+        taps = [
+          "golangci/tap"
+          "hashicorp/tap"
+          "puma/puma"
+          "withgraphite/tap"
+        ];
+        brews = [
+          "git-xargs"
+          "hashicorp/tap/terraform"
+          "hashicorp/tap/vault"
+          "ast-grep"
+          "nushell"
+          "nvm"
+          "pup"
+          "opencode"
+          "postgresql@14"
+          "poetry"
+          "puma-dev"
+          "rbenv"
+          "sql-migrate"
+          "withgraphite/tap/graphite"
+        ];
+        casks = [
+          "beeper"
+          "brave-browser"
+          "codex"
+          "cursor"
+          "dbeaver-community"
+          "docker-desktop"
+          "figma"
+          "font-fira-code-nerd-font"
+          "font-iosevka-nerd-font"
+          "font-jetbrains-mono-nerd-font"
+          "gcloud-cli"
+          "ghostty"
+          "insomnia"
+          "notion-calendar"
+          "obsidian"
+          "opencode-desktop"
+          "openvpn-connect"
+          "raycast"
+          "rectangle"
+          "spotify"
+          "tableplus"
+          "temurin"
+          "visual-studio-code"
+          "zed"
+        ];
+      };
+
+      system.configurationRevision = self.rev or self.dirtyRev or null;
+      system.stateVersion = 6;
+
+      networking.hostName = "PAR-M4P-LGavaudan";
+      nixpkgs.hostPlatform = "aarch64-darwin";
+      system.primaryUser = "leonardo.gavaudan";
+      users.users."leonardo.gavaudan".home = "/Users/leonardo.gavaudan";
+    };
   in
   {
     darwinConfigurations."Leonardos-MacBook-Pro" = nix-darwin.lib.darwinSystem {
       modules = [
-        configuration
+        personalConfiguration
         home-manager.darwinModules.home-manager
         {
           home-manager.useGlobalPkgs = true;
           home-manager.useUserPackages = true;
           home-manager.backupFileExtension = "backup";
           home-manager.users.leonardogavaudan = import ./home.nix;
+        }
+      ];
+    };
+
+    darwinConfigurations."PAR-M4P-LGavaudan" = nix-darwin.lib.darwinSystem {
+      modules = [
+        workConfiguration
+        home-manager.darwinModules.home-manager
+        {
+          home-manager.useGlobalPkgs = true;
+          home-manager.useUserPackages = true;
+          home-manager.users."leonardo.gavaudan" = import ./home-work.nix;
         }
       ];
     };
