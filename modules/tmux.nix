@@ -20,7 +20,7 @@
       bind-key -T copy-mode-vi . send-keys -X scroll-up
 
       # Reload config
-      bind-key r source-file ~/.tmux.conf \; display-message "Config reloaded!"
+      bind-key r source-file ~/.config/tmux/tmux.conf \; display-message "Config reloaded!"
 
       # Allow escape sequences for clipboard image pasting (e.g., Claude Code)
       set-option -g allow-passthrough on
