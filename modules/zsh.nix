@@ -15,6 +15,7 @@
       CARGO_HOME = "$HOME/.config/cargo";
       RUSTUP_HOME = "$HOME/.config/rustup";
       CODEX_HOME = "$HOME/.config/codex";
+      AGENT_PROFILE = "personal";
     };
 
     # ── Aliases ─────────────────────────────────────────────────
@@ -28,7 +29,8 @@
       tc = "tmux new-session claude";
       tn = "tmux new-session";
       tp = "tmux new-session pi";
-      sync-agents = "cargo run --manifest-path ~/.config/nix-darwin/scripts/agent-config-sync/Cargo.toml --";
+      sync-agent-instructions = "cargo run --manifest-path ~/.config/nix-darwin/scripts/agent-config-sync/Cargo.toml --";
+      sync-agents = "sync-agent-instructions";
     };
 
     # ── .zprofile (login shell) ─────────────────────────────────

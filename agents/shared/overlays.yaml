@@ -1,0 +1,10 @@
+# Shared overlays applied to all profiles first.
+# Supported target keys: pi, claude, codex (claude-code is also accepted).
+#
+# Example:
+# targets:
+#   codex:
+#     prepend: |
+#       Note: Codex global instructions are generated from nix-darwin.
+
+targets: {}

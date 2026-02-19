@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, pkgs, lib, ... }:
 
 {
   imports = [
@@ -23,6 +23,11 @@
     "$HOME/.config/go/bin"
     "$HOME/.config/cargo/bin"
   ];
+
+  # Sync generated harness instruction files during activation.
+  home.activation.syncAgentInstructions = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    run env PATH="/usr/bin:/bin:/usr/sbin:/sbin:$PATH" ${pkgs.cargo}/bin/cargo run --quiet --manifest-path ${config.home.homeDirectory}/.config/nix-darwin/scripts/agent-config-sync/Cargo.toml -- --profile personal
+  '';
 
   programs.home-manager.enable = true;
 }
