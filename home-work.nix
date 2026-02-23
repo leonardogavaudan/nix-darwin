@@ -13,12 +13,7 @@
   home.username = "leonardo.gavaudan";
   home.homeDirectory = lib.mkForce "/Users/leonardo.gavaudan";
 
-  home.sessionPath = [
-    "$HOME/.local/bin"
-    "/usr/local/bin"
-    "$HOME/go/bin"
-    "$HOME/.bun/bin"
-  ];
+  # Profile-specific PATH entries are currently empty; shared PATH lives in modules/zsh.nix.
 
   home.sessionVariables = {
     NVM_DIR = "$HOME/.nvm";
