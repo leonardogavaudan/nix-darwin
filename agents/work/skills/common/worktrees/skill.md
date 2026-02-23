@@ -31,11 +31,16 @@ BRANCH="<branch-name>"
 git worktree add -b "$BRANCH" "$WORKTREE_PATH" "origin/$DEFAULT_BRANCH"
 
 # Copy all CLAUDE.local.md files to their corresponding paths
-find . -name "CLAUDE.local.md" -type f | while read f; do
+fd -H -I -t f -g "CLAUDE.local.md" . | while read -r f; do
     mkdir -p "$WORKTREE_PATH/$(dirname "$f")"
     cp "$f" "$WORKTREE_PATH/$f"
     echo "✓ Copied $f"
 done
+
+# Copy globally-ignored files (from core.excludesfile) into the new worktree
+cargo run --quiet --manifest-path ~/.config/nix-darwin/scripts/worktree-copy-global-ignored/Cargo.toml -- \
+    --source "$(git rev-parse --show-toplevel)" \
+    --worktree "$WORKTREE_PATH"
 
 cd "$WORKTREE_PATH"
 
@@ -54,10 +59,13 @@ cd ~/dev/AlgoliaWeb
 git fetch origin
 DEFAULT_BRANCH=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@' || echo "main")
 git worktree add -b feat/add-feature-x ~/dev/worktrees/AlgoliaWeb-feature-x "origin/$DEFAULT_BRANCH"
-find . -name "CLAUDE.local.md" -type f | while read f; do
+fd -H -I -t f -g "CLAUDE.local.md" . | while read -r f; do
     mkdir -p ~/dev/worktrees/AlgoliaWeb-feature-x/"$(dirname "$f")"
     cp "$f" ~/dev/worktrees/AlgoliaWeb-feature-x/"$f"
 done
+cargo run --quiet --manifest-path ~/.config/nix-darwin/scripts/worktree-copy-global-ignored/Cargo.toml -- \
+  --source "$(git rev-parse --show-toplevel)" \
+  --worktree ~/dev/worktrees/AlgoliaWeb-feature-x
 cd ~/dev/worktrees/AlgoliaWeb-feature-x
 ```
 
