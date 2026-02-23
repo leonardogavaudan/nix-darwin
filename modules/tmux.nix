@@ -3,24 +3,40 @@
 {
   programs.tmux = {
     enable = true;
-    keyMode = "vi";
     prefix = "C-t";
+    keyMode = "vi";
+    mouse = true;
+    escapeTime = 0;
     terminal = "tmux-256color";
 
     extraConfig = ''
-      # Enable extended keys (CSI u / kitty protocol) so Shift+Enter etc. are forwarded
-      set -g extended-keys on
-      set -as terminal-features 'tmux-256color:extkeys'
+      set -g default-terminal "tmux-256color"
+      set -g history-limit 200000
+      set -g renumber-windows on
 
-      # Enter copy mode with prefix + t
+      bind [ split-window -h -c "#{pane_current_path}"
+      bind ] split-window -v -c "#{pane_current_path}"
+
+      bind h select-pane -L
+      bind j select-pane -D
+      bind k select-pane -U
+      bind l select-pane -R
+
       bind-key t copy-mode
-
-      # Scroll up/down by one line with , and . in copy mode
-      bind-key -T copy-mode-vi , send-keys -X scroll-down
-      bind-key -T copy-mode-vi . send-keys -X scroll-up
-
-      # Reload config
+      bind-key -T copy-mode-vi y send-keys -X copy-pipe-and-cancel "pbcopy"
+      bind-key -T copy-mode-vi , send-keys -X scroll-up
+      bind-key -T copy-mode-vi . send-keys -X scroll-down
       bind-key r source-file ~/.config/tmux/tmux.conf \; display-message "Config reloaded!"
+
+      # Enable extended keys (CSI u / kitty protocol)
+      set -g extended-keys always
+      set -as terminal-features 'tmux-256color:extkeys'
+      set -as terminal-features 'xterm-ghostty:extkeys'
+      set -as terminal-features 'xterm-256color:extkeys'
+      set -ga terminal-overrides ',*:kDC5=\e[3;5~'
+      set -ga terminal-overrides ',*:kDC6=\e[3;6~'
+      set -ga terminal-overrides ',*:kDC7=\e[3;7~'
+      set -gw xterm-keys on
 
       # Allow escape sequences for clipboard image pasting (e.g., Claude Code)
       set-option -g allow-passthrough on
