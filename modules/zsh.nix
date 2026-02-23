@@ -1,6 +1,20 @@
 { config, lib, ... }:
 
 {
+  # Shared PATH prefixes for all profiles.
+  home.sessionPath = lib.mkBefore [
+    "/opt/homebrew/bin"
+    "/opt/homebrew/sbin"
+    "/usr/local/bin"
+    "$HOME/.local/bin"
+
+    # Shared runtime/toolchain bins.
+    "\${BUN_INSTALL:-$HOME/.bun}/bin"
+    "$HOME/.cache/.bun/bin"
+    "\${GOPATH:-$HOME/go}/bin"
+    "\${CARGO_HOME:-$HOME/.config/cargo}/bin"
+  ];
+
   home.shellAliases = {
     ".." = "cd ..";
     "..." = "cd ../..";

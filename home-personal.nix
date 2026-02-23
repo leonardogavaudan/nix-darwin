@@ -16,14 +16,7 @@
   # Keep XDG-based paths enabled on macOS.
   xdg.enable = true;
 
-  # Single source of truth for user-level PATH entries.
-  home.sessionPath = [
-    "$HOME/.local/bin"
-    "$HOME/.cache/.bun/bin"
-    "$HOME/.bun/bin"
-    "$HOME/.config/go/bin"
-    "$HOME/.config/cargo/bin"
-  ];
+  # Profile-specific PATH entries live in modules/zsh.nix for now.
 
   home.sessionVariables = {
     EDITOR = "vim";
