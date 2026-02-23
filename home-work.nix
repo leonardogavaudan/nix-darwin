@@ -2,11 +2,7 @@
 
 {
   imports = [
-    ./modules/zsh.nix
-    ./modules/common-programs.nix
     ./modules/tmux.nix
-    ./modules/ghostty.nix
-    ./modules/resource-monitor.nix
   ];
 
   home.stateVersion = "24.11";
@@ -58,7 +54,15 @@
   };
 
   home.shellAliases = {
+    sync-agent-instructions = "cargo run --quiet --manifest-path ~/.config/nix-darwin/scripts/agent-config-sync/Cargo.toml -- --profile work";
+    sync-agents = "sync-agent-instructions";
+    ".." = "cd ..";
+    python = "python3";
     ns = "sudo darwin-rebuild switch --flake ~/.config/nix-darwin";
+    tc = "tmux new-session claude";
+    tn = "tmux new-session";
+    tp = "tmux new-session pi";
+    tx = "tmux new-session codex";
     vl = "vault_auto_login";
   };
 
@@ -68,13 +72,34 @@
   };
 
   programs.zsh = {
+    enable = true;
+    syntaxHighlighting.enable = true;
+    autosuggestion.enable = true;
+    historySubstringSearch.enable = true;
+    completionInit = ''
+      autoload -Uz compinit
+      if [[ -f ~/.zcompdump && $(date +'%j') == $(stat -f '%Sm' -t '%j' ~/.zcompdump 2>/dev/null) ]]; then
+        compinit -C
+      else
+        compinit
+      fi
+    '';
+    history = {
+      size = 50000;
+      save = 50000;
+      ignoreDups = true;
+      ignoreAllDups = true;
+      ignoreSpace = true;
+      extended = true;
+      share = true;
+    };
     plugins = [
       {
         name = "fzf-tab";
         src = pkgs.zsh-fzf-tab + "/share/fzf-tab";
       }
     ];
-    initContent = lib.mkAfter ''
+    initContent = ''
       # NVM (lazy-loaded)
       _nvm_lazy_load() {
         unset -f nvm node npm npx corepack 2>/dev/null
@@ -117,6 +142,8 @@
       done
       [ -d "$HOME/.rbenv/shims" ] && export PATH="$HOME/.rbenv/shims:$PATH"
 
+      [ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"
+
       if [ -f '/opt/homebrew/share/google-cloud-sdk/path.zsh.inc' ]; then . '/opt/homebrew/share/google-cloud-sdk/path.zsh.inc'; fi
       if [ -f '/opt/homebrew/share/google-cloud-sdk/completion.zsh.inc' ]; then . '/opt/homebrew/share/google-cloud-sdk/completion.zsh.inc'; fi
 
@@ -126,14 +153,79 @@
       bindkey '\e[127;3u' backward-kill-word
       bindkey '\e[Z' autosuggest-accept
 
+      [ -f "$HOME/.secrets" ] && source "$HOME/.secrets"
     '';
   };
 
-  programs.git.settings = {
-    init.defaultBranch = "main";
-    url."https://github.com/".insteadOf = "ssh://git@github.com/";
-    url."git@github.com:".insteadOf = "https://github.com/";
+  programs.zoxide = {
+    enable = true;
+    enableZshIntegration = true;
   };
 
-}
+  programs.eza = {
+    enable = true;
+    enableZshIntegration = true;
+    icons = "auto";
+    git = true;
+    extraOptions = [ "--group-directories-first" ];
+  };
 
+  programs.bat.enable = true;
+
+  programs.starship = {
+    enable = true;
+    enableZshIntegration = true;
+    settings = {
+      buf.disabled = true;
+      gcloud.disabled = true;
+      docker_context.disabled = true;
+      package.disabled = true;
+      cmd_duration.min_time = 3000;
+      directory.truncation_length = 3;
+    };
+  };
+
+  programs.gh = {
+    enable = true;
+    settings = {
+      git_protocol = "https";
+    };
+  };
+
+  programs.ghostty = {
+    enable = true;
+    package = null;
+    enableZshIntegration = true;
+    settings = {
+      theme = "Catppuccin Mocha";
+      palette = "8=#1e1e2e";
+      font-size = 15;
+      font-family = "CommitMono";
+      keybind = [
+        "option+backspace=text:\\x1b[127;3u"
+        "shift+backspace=text:\\x7f"
+        "shift+space=text: "
+        "shift+enter=text:\\n"
+        "ctrl+shift+left=move_tab:-1"
+        "ctrl+shift+right=move_tab:1"
+      ];
+    };
+  };
+
+  programs.git = {
+    enable = true;
+    ignores = [
+      "**/.claude/settings.local.json"
+      "CLAUDE.local.md"
+      ".local"
+    ];
+    settings = {
+      user.name = "Leonardo Gavaudan";
+      user.email = "leonardogavaudan@gmail.com";
+      init.defaultBranch = "main";
+      pull.rebase = true;
+      url."https://github.com/".insteadOf = "ssh://git@github.com/";
+      url."git@github.com:".insteadOf = "https://github.com/";
+    };
+  };
+}

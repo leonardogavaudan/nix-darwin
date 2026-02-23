@@ -29,7 +29,7 @@ Personal development environment and dotfiles for Leonardo Gavaudan.
 - `~/master` - Obsidian vault (symlink to `~/Google Drive/My Drive/master`). Primary knowledge base for notes, research, and general content.
 - `~/.config/nix-darwin/` - Nix Darwin + Home Manager configuration
   - `flake.nix` - System packages, Homebrew casks/brews, Home Manager wiring
-  - `home-personal.nix` / `home-work.nix` - Top-level Home Manager configs by profile
+  - `home.nix` - Top-level Home Manager config (imports modules)
   - `modules/zsh.nix` - Shell config (aliases, env vars, PATH, secrets)
   - `modules/tmux.nix` - Tmux config (prefix, keybindings, options)
   - `modules/ghostty.nix` - Ghostty terminal config
