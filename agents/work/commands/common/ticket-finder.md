@@ -1,11 +1,12 @@
 ---
-name: ticket-finder
-description: Find and work on Jira tickets autonomously. Use when looking for tasks to pick up, or when the user asks for help finding work to do.
+description: Find and work on Jira tickets autonomously end-to-end.
 ---
 
 # Autonomous Ticket Finder
 
 Find tickets that can be completed autonomously end-to-end. The goal is **independence** - can you understand the problem, implement a solution, and verify it works without needing human input? That's more important than raw size.
+
+User preferences or constraints (if provided): $ARGUMENTS
 
 ## Backlog Cache
 
@@ -141,7 +142,7 @@ jq '[.[] | select(
 ) | {key, summary, priority}]' "$FILE"
 ```
 
-**Then fetch full details from Jira** for 15-20 candidates using `mcp__atlassian__jira_get_issue` in parallel. Score each ticket:
+**Then fetch full details from Jira** for 15-20 candidates using your harness Jira issue tool in parallel (for example: `atlassian_jira_get_issue`, `jira_get_issue`, or `mcp__atlassian__jira_get_issue`). Score each ticket:
 
 ✅ **Good signals:**
 - Clear acceptance criteria ("Done if...")
@@ -343,14 +344,14 @@ After creating the PR:
 3. **Assign ticket** - Assign the ticket to leonardo.gavaudan@algolia.com
 4. **Link PR** - Add the PR URL to the ticket
 
-Use the Jira MCP tools or skill:
+Use the Jira tools available in your harness:
 ```bash
 # Transition to "In Review" (get transition ID first)
-mcp__atlassian__jira_get_transitions for OPTIM-XXXX
-mcp__atlassian__jira_transition_issue OPTIM-XXXX to "In Review"
+jira_get_transitions for OPTIM-XXXX
+jira_transition_issue OPTIM-XXXX to "In Review"
 
 # Assign ticket
-mcp__atlassian__jira_update_issue OPTIM-XXXX with assignee
+jira_update_issue OPTIM-XXXX with assignee
 ```
 
 ### 13. After PR is merged: Cleanup
@@ -359,7 +360,7 @@ Once the PR is merged:
 
 1. **Update Jira** - Transition to "Done"
 ```bash
-mcp__atlassian__jira_transition_issue OPTIM-XXXX to "Done"
+jira_transition_issue OPTIM-XXXX to "Done"
 ```
 
 2. **Remove the worktree**
@@ -428,19 +429,17 @@ Read the component code to understand what values trigger the bug.
 
 Use the browser skill to get to the page where you'll test.
 
-**Remember to load MCP tools first:**
-```
-MCPSearch: "select:mcp__claude-in-chrome__tabs_context_mcp"
-MCPSearch: "select:mcp__claude-in-chrome__javascript_tool"
-MCPSearch: "select:mcp__claude-in-chrome__read_page"
-MCPSearch: "select:mcp__claude-in-chrome__computer"
-```
+**Load the browser tools available in your harness first:**
+- list/select tabs
+- run JavaScript in the page
+- read page content and console logs
+- click/type automation
 
 The override must be installed while you're already in the app.
 
 **3. Install the fetch override**
 
-Run this via `mcp__claude-in-chrome__javascript_tool`:
+Run this via your browser JavaScript execution tool:
 
 ```javascript
 // Store original fetch and mark as installed (for verification)
@@ -495,7 +494,7 @@ This triggers a new API call that your override will intercept.
 
 **6. Check console logs**
 
-Use `mcp__claude-in-chrome__read_console_messages` with a pattern filter:
+Use your browser console-reading tool with a pattern filter:
 ```
 tabId: <your-tab-id>
 pattern: "OVERRIDE"
