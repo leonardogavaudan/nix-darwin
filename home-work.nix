@@ -3,7 +3,6 @@
 {
   imports = [
     ./modules/zsh.nix
-    ./modules/shell-aliases.nix
     ./modules/tmux.nix
     ./modules/ghostty.nix
     ./modules/resource-monitor.nix
@@ -68,26 +67,6 @@
   };
 
   programs.zsh = {
-    syntaxHighlighting.enable = true;
-    autosuggestion.enable = true;
-    historySubstringSearch.enable = true;
-    completionInit = ''
-      autoload -Uz compinit
-      if [[ -f ~/.zcompdump && $(date +'%j') == $(stat -f '%Sm' -t '%j' ~/.zcompdump 2>/dev/null) ]]; then
-        compinit -C
-      else
-        compinit
-      fi
-    '';
-    history = {
-      size = 50000;
-      save = 50000;
-      ignoreDups = true;
-      ignoreAllDups = true;
-      ignoreSpace = true;
-      extended = true;
-      share = true;
-    };
     plugins = [
       {
         name = "fzf-tab";

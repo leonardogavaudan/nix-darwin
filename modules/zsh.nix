@@ -1,9 +1,46 @@
 { config, lib, ... }:
 
 {
+  home.shellAliases = {
+    ".." = "cd ..";
+    python = "python3";
+    vim = "nvim";
+
+    tc = "tmux new-session claude";
+    tn = "tmux new-session";
+    tp = "tmux new-session pi";
+    tx = "tmux new-session codex";
+
+    sync-agent-instructions = "cargo run --quiet --manifest-path ~/.config/nix-darwin/scripts/agent-config-sync/Cargo.toml -- --profile $AGENT_PROFILE";
+    sync-agents = "sync-agent-instructions";
+  };
+
   programs.zsh = {
     enable = true;
     dotDir = "${config.xdg.configHome}/zsh";
+
+    syntaxHighlighting.enable = true;
+    autosuggestion.enable = true;
+    historySubstringSearch.enable = true;
+
+    completionInit = ''
+      autoload -Uz compinit
+      if [[ -f ~/.zcompdump && $(date +'%j') == $(stat -f '%Sm' -t '%j' ~/.zcompdump 2>/dev/null) ]]; then
+        compinit -C
+      else
+        compinit
+      fi
+    '';
+
+    history = {
+      size = 50000;
+      save = 50000;
+      ignoreDups = true;
+      ignoreAllDups = true;
+      ignoreSpace = true;
+      extended = true;
+      share = true;
+    };
 
     # ── .zshenv additions (after sessionVariables) ──────────────
     envExtra = ''
