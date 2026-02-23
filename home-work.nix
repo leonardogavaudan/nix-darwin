@@ -2,7 +2,11 @@
 
 {
   imports = [
+    ./modules/zsh.nix
+    ./modules/shell-aliases.nix
     ./modules/tmux.nix
+    ./modules/ghostty.nix
+    ./modules/resource-monitor.nix
   ];
 
   home.stateVersion = "24.11";
@@ -54,15 +58,7 @@
   };
 
   home.shellAliases = {
-    sync-agent-instructions = "cargo run --quiet --manifest-path ~/.config/nix-darwin/scripts/agent-config-sync/Cargo.toml -- --profile work";
-    sync-agents = "sync-agent-instructions";
-    ".." = "cd ..";
-    python = "python3";
     ns = "sudo darwin-rebuild switch --flake ~/.config/nix-darwin";
-    tc = "tmux new-session claude";
-    tn = "tmux new-session";
-    tp = "tmux new-session pi";
-    tx = "tmux new-session codex";
     vl = "vault_auto_login";
   };
 
@@ -72,7 +68,6 @@
   };
 
   programs.zsh = {
-    enable = true;
     syntaxHighlighting.enable = true;
     autosuggestion.enable = true;
     historySubstringSearch.enable = true;
@@ -99,7 +94,7 @@
         src = pkgs.zsh-fzf-tab + "/share/fzf-tab";
       }
     ];
-    initContent = ''
+    initContent = lib.mkAfter ''
       # NVM (lazy-loaded)
       _nvm_lazy_load() {
         unset -f nvm node npm npx corepack 2>/dev/null
@@ -142,8 +137,6 @@
       done
       [ -d "$HOME/.rbenv/shims" ] && export PATH="$HOME/.rbenv/shims:$PATH"
 
-      [ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"
-
       if [ -f '/opt/homebrew/share/google-cloud-sdk/path.zsh.inc' ]; then . '/opt/homebrew/share/google-cloud-sdk/path.zsh.inc'; fi
       if [ -f '/opt/homebrew/share/google-cloud-sdk/completion.zsh.inc' ]; then . '/opt/homebrew/share/google-cloud-sdk/completion.zsh.inc'; fi
 
@@ -153,7 +146,6 @@
       bindkey '\e[127;3u' backward-kill-word
       bindkey '\e[Z' autosuggest-accept
 
-      [ -f "$HOME/.secrets" ] && source "$HOME/.secrets"
     '';
   };
 
@@ -189,26 +181,6 @@
     enable = true;
     settings = {
       git_protocol = "https";
-    };
-  };
-
-  programs.ghostty = {
-    enable = true;
-    package = null;
-    enableZshIntegration = true;
-    settings = {
-      theme = "Catppuccin Mocha";
-      palette = "8=#1e1e2e";
-      font-size = 15;
-      font-family = "CommitMono";
-      keybind = [
-        "option+backspace=text:\\x1b[127;3u"
-        "shift+backspace=text:\\x7f"
-        "shift+space=text: "
-        "shift+enter=text:\\n"
-        "ctrl+shift+left=move_tab:-1"
-        "ctrl+shift+right=move_tab:1"
-      ];
     };
   };
 
