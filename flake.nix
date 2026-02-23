@@ -240,7 +240,7 @@
           home-manager.useGlobalPkgs = true;
           home-manager.useUserPackages = true;
           home-manager.backupFileExtension = "backup";
-          home-manager.users.leonardogavaudan = import ./home.nix;
+          home-manager.users.leonardogavaudan = import ./home-personal.nix;
         }
       ];
     };
