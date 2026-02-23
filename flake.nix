@@ -178,7 +178,6 @@
           "golangci/tap"
           "hashicorp/tap"
           "puma/puma"
-          "withgraphite/tap"
         ];
         brews = [
           "git-xargs"
@@ -194,7 +193,6 @@
           "puma-dev"
           "rbenv"
           "sql-migrate"
-          "withgraphite/tap/graphite"
         ];
         casks = [
           "beeper"
