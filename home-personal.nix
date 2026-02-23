@@ -3,7 +3,6 @@
 {
   imports = [
     ./modules/zsh.nix
-    ./modules/shell-aliases.nix
     ./modules/tmux.nix
     ./modules/ghostty.nix
     ./modules/resource-monitor.nix
