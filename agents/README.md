@@ -10,6 +10,7 @@
 - `agents/<profile>/overlays.yaml` (optional)
 - `agents/<scope>/skills/<target>/...` (optional; create target dir when needed)
 - `agents/<scope>/hooks/<target>/...` (optional; create target dir when needed)
+- `agents/<scope>/commands/<target>/...` (optional; create target dir when needed)
 
 Where:
 - `<scope>` is `shared`, `personal`, or `work`
@@ -50,21 +51,22 @@ Overlay merge order:
 2. `<profile>/overlays.yaml`
 3. optional CLI `--overlays PATH`
 
-## Skills/hooks sync behavior (manifest-free)
+## Skills/hooks/commands sync behavior (manifest-free)
 
-When running in layered mode (without `--source`), the sync also links skills/hooks:
+When running in layered mode (without `--source`), the sync links skills, hooks, and commands:
 
 - merge order per target:
   1. `shared/<kind>/common`
   2. `shared/<kind>/<target>`
   3. `<profile>/<kind>/common`
   4. `<profile>/<kind>/<target>`
-- `<kind>` is `skills` or `hooks`
+- `<kind>` is `skills`, `hooks`, or `commands`
 - profile entries override shared entries when names collide
 - destination roots:
-  - Pi: `~/.pi/agent/{skills,hooks}`
-  - Claude: `~/.claude/{skills,hooks}`
-  - Codex: `$CODEX_HOME/{skills,hooks}`
+  - Pi: `~/.pi/agent/{skills,hooks,prompts}` (commands sync to `prompts`)
+  - Claude: `~/.claude/{skills,hooks,commands}`
+  - Codex: `$CODEX_HOME/{skills,hooks,prompts}` (commands sync to `prompts`)
+- command entries should be top-level Markdown files (Pi and Codex prompt discovery is non-recursive)
 
 The sync updates entries that exist in your layered sources and only removes stale symlinks that point back into those managed source folders.
 

@@ -643,6 +643,36 @@ fn sync_profile_assets(config: &Config) -> Result<(), String> {
                 if synced_hooks == 1 { "y" } else { "ies" }
             );
         }
+
+        let command_sources = vec![
+            config.agents_dir.join("shared/commands/common"),
+            config.agents_dir.join("shared/commands").join(target),
+            config
+                .agents_dir
+                .join(&config.profile)
+                .join("commands/common"),
+            config
+                .agents_dir
+                .join(&config.profile)
+                .join("commands")
+                .join(target),
+        ];
+
+        let command_destination = match target {
+            "pi" => root.join("prompts"),
+            "claude" => root.join("commands"),
+            "codex" => root.join("prompts"),
+            _ => unreachable!("unknown target: {target}"),
+        };
+
+        let synced_commands = sync_layered_entries(&command_sources, &command_destination)?;
+
+        if synced_commands > 0 {
+            println!(
+                "Synced {synced_commands} command entr{} for {target}",
+                if synced_commands == 1 { "y" } else { "ies" }
+            );
+        }
     }
 
     Ok(())

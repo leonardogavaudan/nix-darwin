@@ -43,20 +43,20 @@ System is managed declaratively with **nix-darwin** + **home-manager**.
 - **Repo-level files** (e.g., `repo/AGENTS.md`, `repo/CLAUDE.md`) are separate and not touched by this sync.
 - Do **not** edit generated files directly.
 
-## Global Skills & Hooks Sync
+## Global Skills, Hooks & Commands Sync
 - **Layered sources (manifest-free):**
-  - `~/.config/nix-darwin/agents/shared/{skills,hooks}/{common,pi,claude,codex}`
-  - `~/.config/nix-darwin/agents/work/{skills,hooks}/{common,pi,claude,codex}`
+  - `~/.config/nix-darwin/agents/shared/{skills,hooks,commands}/{common,pi,claude,codex}`
+  - `~/.config/nix-darwin/agents/work/{skills,hooks,commands}/{common,pi,claude,codex}`
 - **Generated directories:**
-  - `~/.pi/agent/{skills,hooks}`
-  - `~/.claude/{skills,hooks}`
-  - `${CODEX_HOME:-~/.config/codex}/{skills,hooks}`
+  - `~/.pi/agent/{skills,hooks,prompts}` (commands sync to `prompts`)
+  - `~/.claude/{skills,hooks,commands}`
+  - `${CODEX_HOME:-~/.config/codex}/{skills,hooks,prompts}` (commands sync to `prompts`)
 - **Merge order (per target):**
   1. `shared/<kind>/common`
   2. `shared/<kind>/<target>`
   3. `work/<kind>/common`
   4. `work/<kind>/<target>`
-- **How to update:** edit/add skills or hooks in layered source dirs, then run `sync-agent-instructions` (or `darwin-rebuild switch`).
+- **How to update:** edit/add skills, hooks, or commands in layered source dirs, then run `sync-agent-instructions` (or `darwin-rebuild switch`).
 - Do **not** edit generated harness directories directly.
 
 ## Assistant Response Preferences
