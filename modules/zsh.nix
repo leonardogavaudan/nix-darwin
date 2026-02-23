@@ -3,7 +3,10 @@
 {
   home.shellAliases = {
     ".." = "cd ..";
+    "..." = "cd ../..";
+    ll = "ls -la | sort -k 1";
     python = "python3";
+    pip = "pip3";
     vim = "nvim";
 
     tc = "tmux new-session claude";

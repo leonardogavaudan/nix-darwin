@@ -3,6 +3,7 @@
 {
   imports = [
     ./modules/zsh.nix
+    ./modules/common-programs.nix
     ./modules/tmux.nix
     ./modules/ghostty.nix
     ./modules/resource-monitor.nix
@@ -34,12 +35,6 @@
     RUSTUP_HOME = "$HOME/.config/rustup";
     CODEX_HOME = "$HOME/.config/codex";
     AGENT_PROFILE = "personal";
-  };
-
-  home.shellAliases = {
-    "..." = "cd ../..";
-    ll = "ls -la | sort -k 1";
-    pip = "pip3";
   };
 
   # Sync generated harness instruction files during activation.
