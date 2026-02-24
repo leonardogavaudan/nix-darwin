@@ -169,11 +169,11 @@ Check available skill descriptions for the current harness to find the right one
 - When a workflow feels clunky, suggest hooks or skills to fix it
 - If you learn something new about this user's preferences mid-session, ask if it should be persisted
 
-## CLAUDE.local.md Files
-- Many repos contain `CLAUDE.md` / `CLAUDE.local.md` or `AGENTS.md` / `AGENTS.local.md` files (usually in `.claude/` or `.agents/` directories) with shared and personal repo context
+## AGENTS.local.md Files
+- Many repos contain `AGENTS.md` / `AGENTS.local.md` files (usually at repo root or in `.agents/` directories) with shared and personal repo context
 - Context-loading behavior differs by harness:
-  - **Pi:** `repo-context-loader` auto-loads matching CLAUDE/AGENTS files recursively from the repo root when files are read/edited/written (once per repo per session)
-  - **Claude Code:** native `CLAUDE.md` / `CLAUDE.local.md` loading + `~/.claude/hooks/agents-md` loads `AGENTS.md` at session start and lazily from ancestor directories on `Read|Grep|Glob`
+  - **Pi:** `repo-context-loader` auto-loads matching `AGENTS.md` / `AGENTS.local.md` files recursively from the repo root when files are read/edited/written (once per repo per session)
+  - **Claude Code:** `~/.claude/hooks/agents-md` loads `AGENTS.md` at session start and lazily from ancestor directories on `Read|Grep|Glob`
   - **Codex/OpenCode:** no equivalent global auto-loader is configured; read relevant context files explicitly when starting in unfamiliar repos
 
 ---

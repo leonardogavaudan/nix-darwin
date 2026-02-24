@@ -30,8 +30,8 @@ WORKTREE_PATH=~/dev/worktrees/<repo>-<suffix>
 BRANCH="<branch-name>"
 git worktree add -b "$BRANCH" "$WORKTREE_PATH" "origin/$DEFAULT_BRANCH"
 
-# Copy all CLAUDE.local.md files to their corresponding paths
-fd -H -I -t f -g "CLAUDE.local.md" . | while read -r f; do
+# Copy all AGENTS.local.md files to their corresponding paths
+fd -H -I -t f -g "AGENTS.local.md" . | while read -r f; do
     mkdir -p "$WORKTREE_PATH/$(dirname "$f")"
     cp "$f" "$WORKTREE_PATH/$f"
     echo "✓ Copied $f"
@@ -59,7 +59,7 @@ cd ~/dev/AlgoliaWeb
 git fetch origin
 DEFAULT_BRANCH=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@' || echo "main")
 git worktree add -b feat/add-feature-x ~/dev/worktrees/AlgoliaWeb-feature-x "origin/$DEFAULT_BRANCH"
-fd -H -I -t f -g "CLAUDE.local.md" . | while read -r f; do
+fd -H -I -t f -g "AGENTS.local.md" . | while read -r f; do
     mkdir -p ~/dev/worktrees/AlgoliaWeb-feature-x/"$(dirname "$f")"
     cp "$f" ~/dev/worktrees/AlgoliaWeb-feature-x/"$f"
 done
@@ -79,7 +79,7 @@ git worktree add ~/dev/worktrees/<repo>-<suffix> <existing-branch>
 
 ## After Creating a Worktree
 
-1. **Read `CLAUDE.local.md`** - Contains repo-specific gotchas, commands, and multi-agent tips
+1. **Read `AGENTS.local.md`** - Contains repo-specific gotchas, commands, and multi-agent tips
 2. **Re-initialize git submodules** - Worktrees copy submodule files but not git metadata, so `git submodule update` will fail. Nuke and re-clone:
    ```bash
    # List submodules to find their paths
@@ -90,7 +90,7 @@ git worktree add ~/dev/worktrees/<repo>-<suffix> <existing-branch>
    git submodule update --init <submodule-path>
    ```
 3. **Install dependencies** if needed - worktrees share git history but not installed packages
-4. **Check for port conflicts** - If running dev servers in parallel, see `CLAUDE.local.md` for port management
+4. **Check for port conflicts** - If running dev servers in parallel, see `AGENTS.local.md` for port management
 
 ## Listing Worktrees
 

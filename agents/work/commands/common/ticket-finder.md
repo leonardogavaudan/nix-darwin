@@ -102,14 +102,14 @@ cd ~/dev/AlgoliaWeb
 git fetch origin
 DEFAULT_BRANCH=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@' || echo "main")
 git worktree add -b feat/optim-XXXX-short-description ~/dev/worktrees/AlgoliaWeb-optim-XXXX "origin/$DEFAULT_BRANCH"
-find . -name "CLAUDE.local.md" -type f | while read f; do
+find . -name "AGENTS.local.md" -type f | while read f; do
     mkdir -p ~/dev/worktrees/AlgoliaWeb-optim-XXXX/"$(dirname "$f")"
     cp "$f" ~/dev/worktrees/AlgoliaWeb-optim-XXXX/"$f"
 done
 cd ~/dev/worktrees/AlgoliaWeb-optim-XXXX
 ```
 
-**Read `CLAUDE.local.md`** in the worktree - it contains repo-specific instructions, gotchas, and multi-agent development tips (like HMR port conflicts).
+**Read `AGENTS.local.md`** in the worktree - it contains repo-specific instructions, gotchas, and multi-agent development tips (like HMR port conflicts).
 
 ### 1. Find candidates
 
@@ -391,7 +391,7 @@ cd ~/dev/AlgoliaWeb-optim-XXXX && yarn dev:beta
 yarn dev:beta --port 8182
 ```
 
-**Note:** See `CLAUDE.local.md` for the HMR fix if you get infinite reload loops on non-default ports.
+**Note:** See `AGENTS.local.md` for the HMR fix if you get infinite reload loops on non-default ports.
 
 - No backend needed - proxies to beta-dashboard.algolia.com (staging)
 - Use the browser skill to navigate and verify the fix

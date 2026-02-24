@@ -49,9 +49,9 @@ targets:
         Load relevant skills before taking action (GCP, GitHub, browser, worktrees, Jira, React, etc.).
         Skills are in `~/.claude/skills/` - check descriptions to find the right one. Don't skip this step.
 
-      "CLAUDE.local.md Files": |
-        - Many repos contain a `CLAUDE.local.md` file (usually in `.claude/` directory) with personal notes, quick commands, gotchas, and repo-specific context
-        - **ALWAYS check for and read `CLAUDE.local.md`** when starting work in a repo - it contains hard-won knowledge that saves time
+      "AGENTS.local.md Files": |
+        - Many repos contain an `AGENTS.local.md` file (usually at repo root) with personal notes, quick commands, gotchas, and repo-specific context
+        - **ALWAYS check for and read `AGENTS.local.md`** when starting work in a repo - it contains hard-won knowledge that saves time
         - These files are gitignored and contain user-specific workflows, not shared team docs
 
     append: |

@@ -40,7 +40,7 @@
     enable = true;
     ignores = [
       "**/.claude/settings.local.json"
-      "CLAUDE.local.md"
+      "AGENTS.local.md"
       ".local"
     ];
     settings = {
