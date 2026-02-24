@@ -233,7 +233,8 @@ Most CLI tools are managed via nix-darwin (see Nix Setup above).
 | `gh` | GitHub | Authenticated as `leonardogavaudan` |
 | `gcloud` / `bq` / `gsutil` | Google Cloud | READ ONLY |
 | `rg` (ripgrep) | Text search | **Always use instead of `grep`**. Faster, respects .gitignore, better defaults |
-| `fd` | File search | **Always use instead of `find`**. Faster, respects .gitignore, simpler syntax (e.g., `fd -e go` instead of `find . -name "*.go"`) |
+| `fdu` (`fd -u`) | File search (unrestricted) | **Always use instead of `find`** for discovery. Includes hidden + gitignored files while keeping `fd` syntax (e.g., `fdu -e go` instead of `find . -name "*.go"`) |
+| `fd` | File search (ignore-aware) | Use when you intentionally want ignore behavior (respects `.gitignore`, skips hidden files by default) |
 | `jq` | JSON processing | |
 | `yq` | YAML/TOML/XML processing | Like `jq` but for YAML; use for K8s manifests, CI configs, gcloud YAML output |
 | `gron` | Make JSON greppable | Flattens JSON so you can `grep` for fields; use to explore unfamiliar API responses |
@@ -249,7 +250,8 @@ Most CLI tools are managed via nix-darwin (see Nix Setup above).
 When running Bash commands, prefer modern tools over legacy defaults:
 
 - **Search text**: `rg` over `grep` — always
-- **Search files**: `fd` over `find` — always
+- **Search files (default/discovery)**: `fdu` (`fd -u`) over `find` — always
+- **Search files (ignore-aware)**: plain `fd` only when you explicitly want to respect `.gitignore` and hidden-file filtering
 - **Search code patterns**: `sg` over `rg` when looking for structural patterns (function signatures, struct definitions, import statements)
 - **Explore JSON structure**: `gron` first to find the right path, then `jq` to extract
 - **Directory overview**: `tree -L 2` over `ls -R` or multiple `ls` calls
