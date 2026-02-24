@@ -19,6 +19,7 @@
     ".." = "cd ..";
     "..." = "cd ../..";
     ll = "ls -la | sort -k 1";
+    fdu = "fd -u";
     python = "python3";
     pip = "pip3";
     vim = "nvim";
