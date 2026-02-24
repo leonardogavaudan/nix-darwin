@@ -15,6 +15,15 @@
     "\${CARGO_HOME:-$HOME/.config/cargo}/bin"
   ];
 
+  # Non-interactive-compatible wrapper (aliases are interactive-shell only)
+  home.file.".local/bin/fdu" = {
+    executable = true;
+    text = ''
+      #!/usr/bin/env bash
+      exec fd -u "$@"
+    '';
+  };
+
   home.shellAliases = {
     ".." = "cd ..";
     "..." = "cd ../..";
