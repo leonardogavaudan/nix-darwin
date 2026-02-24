@@ -52,6 +52,23 @@
     };
   };
 
+  # Update top-level non-worktree git repos in ~/dev every hour.
+  launchd.agents.dev-repos-update = {
+    enable = true;
+    config = {
+      Label = "com.user.dev-repos-update";
+      ProgramArguments = [
+        "/bin/sh"
+        "-c"
+        "PATH=/run/current-system/sw/bin:/usr/bin:/bin:/usr/sbin:/sbin ${config.home.homeDirectory}/dev/update.sh"
+      ];
+      RunAtLoad = true;
+      StartInterval = 3600;
+      StandardOutPath = "/tmp/dev-repos-update.log";
+      StandardErrorPath = "/tmp/dev-repos-update.log";
+    };
+  };
+
   home.shellAliases = {
     ns = "sudo darwin-rebuild switch --flake ~/.config/nix-darwin";
     vl = "vault_auto_login";
