@@ -15,12 +15,12 @@
 
   # Keep XDG-based paths enabled on macOS.
   xdg.enable = true;
+  xdg.configHome = "${config.home.homeDirectory}/.config";
 
   # Profile-specific PATH entries live in modules/zsh.nix for now.
 
   home.sessionVariables = {
     EDITOR = "vim";
-    XDG_CONFIG_HOME = "$HOME/.config";
     AWS_CONFIG_FILE = "$HOME/.config/aws/config";
     AWS_SHARED_CREDENTIALS_FILE = "$HOME/.config/aws/credentials";
     GOPATH = "$HOME/.config/go";
