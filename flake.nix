@@ -83,6 +83,7 @@
           "raycast"
           "rectangle"
           "spotify"
+          "tailscale-app"
           "tableplus"
           "visual-studio-code"
         ];
