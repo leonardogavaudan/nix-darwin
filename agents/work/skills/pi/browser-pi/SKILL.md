@@ -5,7 +5,7 @@ description: Interactive browser automation via Chrome DevTools Protocol. Use wh
 
 # Browser Tools
 
-Chrome DevTools Protocol tools for agent-assisted web automation. These tools connect to Chrome running on `:9222` with remote debugging enabled.
+Chrome DevTools Protocol tools for agent-assisted web automation. In this setup they connect to Brave running on `:9222` with remote debugging enabled.
 
 ## Setup
 
@@ -19,14 +19,14 @@ npm install
 ## Start Browser
 
 ```bash
-{baseDir}/browser-start.js               # Start Brave (default)
-{baseDir}/browser-start.js --profile     # Start Brave with Brave profile copy
-{baseDir}/browser-start.js --chrome      # Start Google Chrome instead
-{baseDir}/browser-start.js --chrome --profile
+{baseDir}/browser-start.js               # Start Brave (default, background)
+{baseDir}/browser-start.js --profile     # Start Brave with Brave profile copy (background)
+{baseDir}/browser-start.js --focus       # Start and bring browser to foreground
 ```
 
-Launches the browser with remote debugging on `:9222`. Default is **Brave**; pass `--chrome` to override.
-Use `--profile` to preserve authentication state from the selected browser profile.
+Launches **Brave** with remote debugging on `:9222` (Brave-only workflow).
+Use `--profile` to preserve authentication state from the Brave profile.
+By default this starts in the background to avoid stealing focus. Pass `--focus` when foreground is needed.
 
 ## List Tabs
 
@@ -43,10 +43,13 @@ Shows tab indices, titles, and URLs. Use the index with `--tab` in other command
 {baseDir}/browser-nav.js https://example.com --new
 {baseDir}/browser-nav.js https://example.com --tab 2
 {baseDir}/browser-nav.js https://example.com --url-match circleci
+{baseDir}/browser-nav.js https://example.com --focus
 ```
 
 Navigate to URLs.
-- `--new`: open in a new tab
+- Default behavior does **not** bring the tab/browser to front (prevents focus stealing)
+- `--new` without `--focus`: opens a **background tab** via CDP (no app activation)
+- `--focus`: bring the target tab to front when needed for interactive tasks
 - `--tab <index>`: target a specific tab index
 - `--url-match <substring>`: target the last tab whose URL contains the substring
 
@@ -56,10 +59,11 @@ Navigate to URLs.
 {baseDir}/browser-eval.js 'document.title'
 {baseDir}/browser-eval.js --tab 2 'document.title'
 {baseDir}/browser-eval.js --url-match circleci 'location.href'
-{baseDir}/browser-eval.js 'document.querySelectorAll("a").length'
+{baseDir}/browser-eval.js --focus 'document.querySelectorAll("a").length'
 ```
 
 Execute JavaScript in a target tab. Code runs in async context. Use this to extract data, inspect page state, or perform DOM operations programmatically.
+Default behavior does **not** bring the tab/browser to front; pass `--focus` when you explicitly want that.
 
 ## Screenshot
 
