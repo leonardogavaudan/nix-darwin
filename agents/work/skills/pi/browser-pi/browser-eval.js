@@ -3,12 +3,12 @@
 import puppeteer from "puppeteer-core";
 
 function printUsage() {
-	console.log("Usage: browser-eval.js [--tab <index>] [--url-match <substring>] '<code>'");
+	console.log("Usage: browser-eval.js [--tab <index>] [--url-match <substring>] [--focus] '<code>'");
 	console.log("\nExamples:");
-	console.log('  browser-eval.js "document.title"');
-	console.log('  browser-eval.js --tab 2 "document.title"');
-	console.log('  browser-eval.js --url-match circleci "location.href"');
-	console.log('  browser-eval.js "document.querySelectorAll(\\"a\\").length"');
+	console.log('  browser-eval.js "document.title"                                  # No focus');
+	console.log('  browser-eval.js --tab 2 "document.title"                          # No focus');
+	console.log('  browser-eval.js --url-match circleci "location.href"              # No focus');
+	console.log('  browser-eval.js --focus "document.querySelectorAll(\\"a\\").length"  # Bring tab to front');
 }
 
 function pickPage(pages, tabIndex, urlMatch) {
@@ -36,6 +36,7 @@ function pickPage(pages, tabIndex, urlMatch) {
 const args = process.argv.slice(2);
 let tabIndex = null;
 let urlMatch = null;
+let focus = false;
 const codeParts = [];
 
 for (let i = 0; i < args.length; i++) {
@@ -58,6 +59,8 @@ for (let i = 0; i < args.length; i++) {
 		}
 		urlMatch = value;
 		i++;
+	} else if (arg === "--focus") {
+		focus = true;
 	} else {
 		codeParts.push(arg);
 	}
@@ -89,7 +92,7 @@ try {
 		process.exit(1);
 	}
 
-	await p.bringToFront();
+	if (focus) await p.bringToFront();
 	const result = await p.evaluate((c) => {
 		const AsyncFunction = (async () => {}).constructor;
 		return new AsyncFunction(`return (${c})`)();

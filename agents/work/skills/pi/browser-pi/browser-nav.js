@@ -3,13 +3,16 @@
 import puppeteer from "puppeteer-core";
 
 function printUsage() {
-	console.log("Usage: browser-nav.js <url> [--new] [--reload] [--tab <index>] [--url-match <substring>]");
+	console.log(
+		"Usage: browser-nav.js <url> [--new] [--reload] [--tab <index>] [--url-match <substring>] [--focus]",
+	);
 	console.log("\nExamples:");
-	console.log("  browser-nav.js https://example.com                        # Navigate last tab");
-	console.log("  browser-nav.js https://example.com --new                  # Open in new tab");
-	console.log("  browser-nav.js https://example.com --tab 2                # Navigate tab index 2");
-	console.log("  browser-nav.js https://example.com --url-match circleci   # Navigate last tab matching URL");
-	console.log("  browser-nav.js https://example.com --reload               # Navigate and force reload");
+	console.log("  browser-nav.js https://example.com                        # Navigate last tab (no focus)");
+	console.log("  browser-nav.js https://example.com --new                  # Open in new tab (no focus)");
+	console.log("  browser-nav.js https://example.com --tab 2                # Navigate tab index 2 (no focus)");
+	console.log("  browser-nav.js https://example.com --url-match circleci   # Navigate last tab matching URL (no focus)");
+	console.log("  browser-nav.js https://example.com --reload               # Navigate and force reload (no focus)");
+	console.log("  browser-nav.js https://example.com --focus                # Navigate and bring tab to front");
 }
 
 function pickPage(pages, tabIndex, urlMatch) {
@@ -37,9 +40,19 @@ function pickPage(pages, tabIndex, urlMatch) {
 	return { page: pages[index], index };
 }
 
+async function openBackgroundTab(browser, url) {
+	const session = await browser.target().createCDPSession();
+	try {
+		await session.send("Target.createTarget", { url, background: true });
+	} finally {
+		await session.detach().catch(() => {});
+	}
+}
+
 const args = process.argv.slice(2);
 let newTab = false;
 let reload = false;
+let focus = false;
 let tabIndex = null;
 let urlMatch = null;
 let url = null;
@@ -51,6 +64,8 @@ for (let i = 0; i < args.length; i++) {
 		newTab = true;
 	} else if (arg === "--reload") {
 		reload = true;
+	} else if (arg === "--focus") {
+		focus = true;
 	} else if (arg === "--tab") {
 		const value = args[i + 1];
 		if (value === undefined) {
@@ -106,14 +121,19 @@ const b = await Promise.race([
 
 try {
 	if (newTab) {
-		const p = await b.newPage();
-		await p.bringToFront();
-		await p.goto(url, { waitUntil: "domcontentloaded" });
-		console.log("✓ Opened:", url);
+		if (focus) {
+			const p = await b.newPage();
+			await p.bringToFront();
+			await p.goto(url, { waitUntil: "domcontentloaded" });
+			console.log("✓ Opened:", url);
+		} else {
+			await openBackgroundTab(b, url);
+			console.log("✓ Opened in background:", url);
+		}
 	} else {
 		const pages = await b.pages();
 		const { page, index } = pickPage(pages, tabIndex, urlMatch);
-		await page.bringToFront();
+		if (focus) await page.bringToFront();
 		await page.goto(url, { waitUntil: "domcontentloaded" });
 		if (reload) {
 			await page.reload({ waitUntil: "domcontentloaded" });

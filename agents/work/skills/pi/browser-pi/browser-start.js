@@ -6,34 +6,22 @@ import puppeteer from "puppeteer-core";
 
 const args = process.argv.slice(2);
 const useProfile = args.includes("--profile");
-const forceChrome = args.includes("--chrome");
-const forceBrave = args.includes("--brave");
+const focus = args.includes("--focus");
 
-const invalidArg = args.find((arg) => !["--profile", "--brave", "--chrome"].includes(arg));
+const invalidArg = args.find((arg) => !["--profile", "--focus"].includes(arg));
 if (invalidArg) {
-	console.log("Usage: browser-start.js [--profile] [--brave|--chrome]");
+	console.log("Usage: browser-start.js [--profile] [--focus]");
 	console.log("\nOptions:");
-	console.log("  --profile  Copy browser profile (cookies, logins)");
-	console.log("  --brave    Force Brave (default)");
-	console.log("  --chrome   Force Google Chrome");
+	console.log("  --profile  Copy Brave profile (cookies, logins)");
+	console.log("  --focus    Bring browser to foreground (default starts in background)");
+	console.log("\nNote: this tool is Brave-only; Chrome flags are intentionally unsupported.");
 	process.exit(1);
 }
 
-if (forceChrome && forceBrave) {
-	console.error("✗ Use only one of --brave or --chrome");
-	process.exit(1);
-}
-
-// Default browser is Brave unless explicitly overridden.
-const useBrave = forceBrave || !forceChrome;
-
-const browserName = useBrave ? "Brave" : "Chrome";
-const browserBinary = useBrave
-	? "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser"
-	: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
-const profileSource = useBrave
-	? `${process.env.HOME}/Library/Application Support/BraveSoftware/Brave-Browser/`
-	: `${process.env.HOME}/Library/Application Support/Google/Chrome/`;
+const browserName = "Brave";
+const browserApp = "/Applications/Brave Browser.app";
+const browserBinary = "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser";
+const profileSource = `${process.env.HOME}/Library/Application Support/BraveSoftware/Brave-Browser/`;
 const SCRAPING_DIR = `${process.env.HOME}/.cache/browser-pi`;
 
 if (!existsSync(browserBinary)) {
@@ -85,17 +73,21 @@ if (useProfile) {
 	);
 }
 
-// Start browser with flags to force new instance
-spawn(
-	browserBinary,
-	[
-		"--remote-debugging-port=9222",
-		`--user-data-dir=${SCRAPING_DIR}`,
-		"--no-first-run",
-		"--no-default-browser-check",
-	],
-	{ detached: true, stdio: "ignore" },
-).unref();
+// Start browser with flags to force new instance.
+// Use `open -g` by default to avoid stealing focus.
+const openArgs = ["-n"];
+if (!focus) openArgs.push("-g");
+openArgs.push(
+	"-a",
+	browserApp,
+	"--args",
+	"--remote-debugging-port=9222",
+	`--user-data-dir=${SCRAPING_DIR}`,
+	"--no-first-run",
+	"--no-default-browser-check",
+);
+
+spawn("open", openArgs, { detached: true, stdio: "ignore" }).unref();
 
 // Wait for browser to be ready
 let connected = false;
@@ -118,4 +110,6 @@ if (!connected) {
 	process.exit(1);
 }
 
-console.log(`✓ ${browserName} started on :9222${useProfile ? " with profile" : ""}`);
+console.log(
+	`✓ ${browserName} started on :9222${useProfile ? " with profile" : ""}${focus ? " (focused)" : " (background)"}`,
+);
