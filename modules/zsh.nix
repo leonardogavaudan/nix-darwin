@@ -35,6 +35,7 @@
 
     tc = "tmux new-session claude";
     tn = "tmux new-session";
+    ta = "tmux attach";
     tp = "tmux new-session pi";
     tx = "tmux new-session codex";
 
