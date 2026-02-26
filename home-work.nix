@@ -70,76 +70,34 @@
   };
 
   home.shellAliases = {
-    ns = "sudo darwin-rebuild switch --flake ~/.config/nix-darwin";
     vl = "vault_auto_login";
   };
 
-  programs.fzf = {
-    enable = true;
-    enableZshIntegration = true;
-  };
-
-  programs.zsh = {
-    plugins = [
-      {
-        name = "fzf-tab";
-        src = pkgs.zsh-fzf-tab + "/share/fzf-tab";
-      }
-    ];
-    initContent = lib.mkAfter ''
-      # NVM (lazy-loaded)
-      _nvm_lazy_load() {
-        unset -f nvm node npm npx corepack 2>/dev/null
-        [ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && \. "/opt/homebrew/opt/nvm/nvm.sh"
-        [ -s "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm" ] && \. "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm"
-        nvm use 22 --silent 2>/dev/null
-      }
-      for cmd in nvm node npm npx corepack; do
-        eval "$cmd() { _nvm_lazy_load; $cmd \"\$@\" }"
-      done
-
-      if [ -d "$NVM_DIR/versions/node" ] && [ -f "$NVM_DIR/alias/default" ]; then
-        _nvm_alias="$(cat "$NVM_DIR/alias/default")"
-        _nvm_default="$(ls -1d "$NVM_DIR/versions/node/v$_nvm_alias"* 2>/dev/null | sort -V | tail -1)"
-        [ -n "$_nvm_default" ] && export PATH="$_nvm_default/bin:$PATH"
-        unset _nvm_alias _nvm_default
+  programs.zsh.initContent = lib.mkAfter ''
+    vault_auto_login() {
+      if [[ -f ~/.vault-token ]]; then
+        export VAULT_TOKEN=$(cat ~/.vault-token)
       fi
+      if ! vault token lookup > /dev/null 2>&1; then
+        echo "Vault token expired or invalid, logging in..."
+        vault login -method=oidc > /dev/null 2>&1
+        export VAULT_TOKEN=$(cat ~/.vault-token)
+        echo "Vault token refreshed!"
+      else
+        echo "Vault token is valid."
+      fi
+    }
 
-      vault_auto_login() {
-        if [[ -f ~/.vault-token ]]; then
-          export VAULT_TOKEN=$(cat ~/.vault-token)
-        fi
-        if ! vault token lookup > /dev/null 2>&1; then
-          echo "Vault token expired or invalid, logging in..."
-          vault login -method=oidc > /dev/null 2>&1
-          export VAULT_TOKEN=$(cat ~/.vault-token)
-          echo "Vault token refreshed!"
-        else
-          echo "Vault token is valid."
-        fi
-      }
-
-      # rbenv (lazy-loaded)
-      _rbenv_lazy_load() {
-        unset -f rbenv ruby gem bundle rake 2>/dev/null
-        eval "$(command rbenv init -)"
-      }
-      for cmd in rbenv ruby gem bundle rake; do
-        eval "$cmd() { _rbenv_lazy_load; $cmd \"\$@\" }"
-      done
-      [ -d "$HOME/.rbenv/shims" ] && export PATH="$HOME/.rbenv/shims:$PATH"
-
-      if [ -f '/opt/homebrew/share/google-cloud-sdk/path.zsh.inc' ]; then . '/opt/homebrew/share/google-cloud-sdk/path.zsh.inc'; fi
-      if [ -f '/opt/homebrew/share/google-cloud-sdk/completion.zsh.inc' ]; then . '/opt/homebrew/share/google-cloud-sdk/completion.zsh.inc'; fi
-
-      bindkey '\e[3;5~' backward-kill-word
-      bindkey '^[^?' backward-kill-word
-      bindkey '\e\x7f' backward-kill-word
-      bindkey '\e[127;3u' backward-kill-word
-      bindkey '\e[Z' autosuggest-accept
-
-    '';
-  };
+    # rbenv (lazy-loaded)
+    _rbenv_lazy_load() {
+      unset -f rbenv ruby gem bundle rake 2>/dev/null
+      eval "$(command rbenv init -)"
+    }
+    for cmd in rbenv ruby gem bundle rake; do
+      eval "$cmd() { _rbenv_lazy_load; $cmd \"\$@\" }"
+    done
+    [ -d "$HOME/.rbenv/shims" ] && export PATH="$HOME/.rbenv/shims:$PATH"
+  '';
 
   programs.git.settings = {
     init.defaultBranch = "main";
@@ -148,4 +106,3 @@
   };
 
 }
-

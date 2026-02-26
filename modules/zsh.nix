@@ -1,4 +1,4 @@
-{ config, lib, ... }:
+{ config, lib, pkgs, ... }:
 
 {
   # Shared PATH prefixes for all profiles.
@@ -42,6 +42,8 @@
     vim = "nvim";
     rl = "exec $SHELL -l";
 
+    ns = "sudo darwin-rebuild switch --flake ~/.config/nix-darwin";
+
     tc = "tmux new-session claude";
     tn = "tmux new-session";
     ta = "tmux attach";
@@ -52,6 +54,11 @@
     sync-agents = "sync-agent-instructions";
   };
 
+  programs.fzf = {
+    enable = true;
+    enableZshIntegration = true;
+  };
+
   programs.zsh = {
     enable = true;
     dotDir = "${config.xdg.configHome}/zsh";
@@ -59,6 +66,13 @@
     syntaxHighlighting.enable = true;
     autosuggestion.enable = true;
     historySubstringSearch.enable = true;
+
+    plugins = [
+      {
+        name = "fzf-tab";
+        src = pkgs.zsh-fzf-tab + "/share/fzf-tab";
+      }
+    ];
 
     completionInit = ''
       autoload -Uz compinit
@@ -105,6 +119,36 @@
 
       # Bun completions
       [ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"
+
+      # NVM (lazy-loaded)
+      [ -n "$NVM_DIR" ] || export NVM_DIR="$HOME/.nvm"
+      _nvm_lazy_load() {
+        unset -f nvm node npm npx corepack 2>/dev/null
+        if [ -s "/opt/homebrew/opt/nvm/nvm.sh" ]; then
+          . "/opt/homebrew/opt/nvm/nvm.sh"
+          [ -s "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm" ] && . "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm"
+          type nvm >/dev/null 2>&1 && nvm use 22 --silent 2>/dev/null || true
+        fi
+      }
+      for cmd in nvm node npm npx corepack; do
+        eval "$cmd() { _nvm_lazy_load; $cmd \"\$@\" }"
+      done
+
+      if [ -d "$NVM_DIR/versions/node" ] && [ -f "$NVM_DIR/alias/default" ]; then
+        _nvm_alias="$(cat "$NVM_DIR/alias/default")"
+        _nvm_default="$(ls -1d "$NVM_DIR/versions/node/v$_nvm_alias"* 2>/dev/null | sort -V | tail -1)"
+        [ -n "$_nvm_default" ] && export PATH="$_nvm_default/bin:$PATH"
+        unset _nvm_alias _nvm_default
+      fi
+
+      if [ -f '/opt/homebrew/share/google-cloud-sdk/path.zsh.inc' ]; then . '/opt/homebrew/share/google-cloud-sdk/path.zsh.inc'; fi
+      if [ -f '/opt/homebrew/share/google-cloud-sdk/completion.zsh.inc' ]; then . '/opt/homebrew/share/google-cloud-sdk/completion.zsh.inc'; fi
+
+      bindkey '\e[3;5~' backward-kill-word
+      bindkey '^[^?' backward-kill-word
+      bindkey '\e\x7f' backward-kill-word
+      bindkey '\e[127;3u' backward-kill-word
+      bindkey '\e[Z' autosuggest-accept
     '';
   };
 }
