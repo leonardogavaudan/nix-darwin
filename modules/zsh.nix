@@ -27,7 +27,15 @@
   home.shellAliases = {
     ".." = "cd ..";
     "..." = "cd ../..";
+
+    # Shared ls/eza setup across profiles.
+    eza = "eza --icons auto --git --group-directories-first";
+    ls = "eza";
+    la = "eza -a";
+    lla = "eza -la";
+    lt = "eza --tree";
     ll = "ls -la | sort -k 1";
+
     fdu = "fd -u";
     python = "python3";
     pip = "pip3";
