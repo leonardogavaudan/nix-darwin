@@ -84,7 +84,6 @@
           "raycast"
           "rectangle"
           "spotify"
-          "tailscale-app"
           "tableplus"
           "visual-studio-code"
         ];
@@ -146,6 +145,7 @@
           "google-drive"
           "messenger"
           "signal"
+          "tailscale-app"
           "warp"
         ];
       };
