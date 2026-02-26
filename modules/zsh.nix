@@ -40,6 +40,7 @@
     python = "python3";
     pip = "pip3";
     vim = "nvim";
+    rl = "exec $SHELL -l";
 
     tc = "tmux new-session claude";
     tn = "tmux new-session";
