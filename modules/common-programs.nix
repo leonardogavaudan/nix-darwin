@@ -8,7 +8,9 @@
 
   programs.eza = {
     enable = true;
-    enableZshIntegration = true;
+    # Keep shell aliases explicit in modules/zsh.nix so ls/eza behavior is
+    # declarative in one shared place for both personal and work profiles.
+    enableZshIntegration = false;
     icons = "auto";
     git = true;
     extraOptions = [ "--group-directories-first" ];
