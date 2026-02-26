@@ -208,6 +208,7 @@
       };
 
       networking.hostName = "PAR-M4P-LGavaudan";
+      services.openssh.enable = true;
       system.primaryUser = "leonardo.gavaudan";
       users.users."leonardo.gavaudan".home = "/Users/leonardo.gavaudan";
     };
