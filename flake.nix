@@ -38,6 +38,7 @@
         pkgs.rustc
         pkgs.rustfmt
         pkgs.shellcheck
+        pkgs.stylua
         pkgs.tmux
         pkgs.tree
         pkgs.uv
@@ -120,7 +121,6 @@
         pkgs.tectonic
         pkgs.ruff
         pkgs.sox
-        pkgs.stylua
         pkgs.turso-cli
         pkgs.watchman
         pkgs.wget
