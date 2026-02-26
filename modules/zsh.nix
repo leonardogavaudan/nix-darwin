@@ -34,7 +34,7 @@
     la = "eza -a";
     lla = "eza -la";
     lt = "eza --tree";
-    ll = "ls -la | sort -k 1";
+    ll = "eza -la";
 
     fdu = "fd -u";
     python = "python3";
