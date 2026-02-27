@@ -29,6 +29,14 @@
         # Reorder tabs
         "ctrl+shift+left=move_tab:-1"
         "ctrl+shift+right=move_tab:1"
+
+        # Layout fix: on some non-US/Dvorak setups, Cmd+Shift+= resolves
+        # to the physical bracket-right key. Keep that chord for zoom.
+        "super+shift+bracket_right=increase_font_size:1"
+
+        # Keep explicit tab navigation bindings (layout-aware symbols).
+        "super+shift+]=next_tab"
+        "super+shift+[=previous_tab"
       ];
     };
   };
