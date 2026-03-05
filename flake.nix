@@ -33,6 +33,7 @@
         pkgs.mariadb.client
         pkgs.miller
         pkgs.neovim
+        pkgs.poppler-utils
         pkgs.pup
         pkgs.ripgrep
         pkgs.rustc
