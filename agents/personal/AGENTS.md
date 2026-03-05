@@ -18,7 +18,12 @@ Profile-specific instruction layer for personal machines.
 <!-- BEGIN CODEX -->
 ## Codex-Specific Notes
 
-- No additional Codex-only instructions yet.
+- For browser automation, prefer the local `agent-browser` CLI over Browser MCP.
+- Attach to the real Brave Default profile via CDP on port `9223`:
+  - Check availability with `brave-cdp status 9223`.
+  - Attach with `agent-browser connect 9223`.
+  - If CDP is not running, `brave-cdp launch-default 9223 --force-quit` relaunches Brave on the real Default profile.
+- Avoid launching isolated browser profiles unless the task explicitly needs a clean session.
 <!-- END CODEX -->
 
 <!-- BEGIN PI -->
