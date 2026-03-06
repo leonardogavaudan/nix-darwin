@@ -132,7 +132,8 @@ Just use the `#number` reference — GitHub auto-renders the PR title and status
 - Each PR is a checkpoint - if priorities change, partial progress is still shipped
 
 ## Google Cloud
-- READ ONLY - no writes (no INSERT, UPDATE, DELETE, DROP, CREATE, ALTER, gcloud create/delete/update, etc.)
+- Default: READ ONLY - no writes (no INSERT, UPDATE, DELETE, DROP, CREATE, ALTER, gcloud create/delete/update, etc.)
+- Exception: if the user explicitly confirms in the current conversation, write actions are allowed.
 
 ## Code Style
 - Use `golangci-lint fmt` instead of `gofmt`
@@ -231,7 +232,7 @@ Most CLI tools are managed via nix-darwin (see Nix Setup above).
 | Tool | Purpose | Notes |
 |------|---------|-------|
 | `gh` | GitHub | Authenticated as `leonardogavaudan` |
-| `gcloud` / `bq` / `gsutil` | Google Cloud | READ ONLY |
+| `gcloud` / `bq` / `gsutil` | Google Cloud | READ ONLY by default (writes allowed with explicit user confirmation in current conversation) |
 | `rg` (ripgrep) | Text search | **Always use instead of `grep`**. Faster, respects .gitignore, better defaults |
 | `fdu` (`fd -u`) | File search (unrestricted) | **Always use instead of `find`** for discovery. Includes hidden + gitignored files while keeping `fd` syntax (e.g., `fdu -e go` instead of `find . -name "*.go"`) |
 | `fd` | File search (ignore-aware) | Use when you intentionally want ignore behavior (respects `.gitignore`, skips hidden files by default) |

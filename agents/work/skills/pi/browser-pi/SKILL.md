@@ -71,7 +71,22 @@ Default behavior does **not** bring the tab/browser to front; pass `--focus` whe
 {baseDir}/browser-screenshot.js
 ```
 
-Capture current viewport and return temporary file path. Use this to visually inspect page state or verify UI changes.
+Capture current viewport and return temporary file path.
+
+**Important:** this captures the last active page viewport, not a semantic "diagram element". If the user reports clipping, it is usually one of:
+- wrong tab selected,
+- modal overlay still open,
+- content itself clipped by app camera/frame,
+- viewport too small for full content.
+
+For reliable captures:
+1. Run `browser-tabs.js` first and verify target tab index.
+2. Bring target tab to front if needed.
+3. For large diagrams/canvases, prefer element-level screenshots (`svg.screenshot(...)`) via a small Puppeteer script instead of viewport screenshots.
+
+Excalidraw-specific rule:
+- Prefer Pi local preview URLs (`http://localhost:8787/latest.html` or `.../<checkpointId>.html`) over `excalidraw.com/#json=...` for screenshots.
+- This avoids the "Load from link / Replace my content" modal that appears on Excalidraw share imports.
 
 ## Pick Elements
 

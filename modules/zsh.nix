@@ -15,6 +15,16 @@
     "\${CARGO_HOME:-$HOME/.config/cargo}/bin"
   ];
 
+  # Share Terraform provider binaries across directories (faster `terraform init`).
+  home.sessionVariables = {
+    TF_PLUGIN_CACHE_DIR = "$HOME/.cache/terraform/plugin-cache";
+  };
+
+  # Ensure plugin cache directory exists after each Home Manager activation.
+  home.activation.ensureTerraformPluginCacheDir = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    $DRY_RUN_CMD mkdir -p "$HOME/.cache/terraform/plugin-cache"
+  '';
+
   # Non-interactive-compatible wrapper (aliases are interactive-shell only)
   home.file.".local/bin/fdu" = {
     executable = true;

@@ -75,13 +75,13 @@ Use browser export + parser script manually:
 2. Parse with:
 
 ```bash
-python3 ~/.pi/agent/skills/roadmap-workflow/scripts/roadmap_parse.py parse --csv /path/to/roadmap.csv --out ~/.cache/roadmap-workflow/roadmap-latest.json
+bun ~/.pi/agent/skills/roadmap-workflow/scripts/roadmap_parse.ts parse --csv /path/to/roadmap.csv --out ~/.cache/roadmap-workflow/roadmap-latest.json
 ```
 
 3. Query parsed JSON with:
 
 ```bash
-python3 ~/.pi/agent/skills/roadmap-workflow/scripts/roadmap_parse.py summary --json ~/.cache/roadmap-workflow/roadmap-latest.json
-python3 ~/.pi/agent/skills/roadmap-workflow/scripts/roadmap_parse.py timeline --json ~/.cache/roadmap-workflow/roadmap-latest.json --keyword "rich reporting"
-python3 ~/.pi/agent/skills/roadmap-workflow/scripts/roadmap_parse.py sprint --json ~/.cache/roadmap-workflow/roadmap-latest.json --date "2/17/2026"
+bun ~/.pi/agent/skills/roadmap-workflow/scripts/roadmap_parse.ts summary --json ~/.cache/roadmap-workflow/roadmap-latest.json
+bun ~/.pi/agent/skills/roadmap-workflow/scripts/roadmap_parse.ts timeline --json ~/.cache/roadmap-workflow/roadmap-latest.json --keyword "rich reporting"
+bun ~/.pi/agent/skills/roadmap-workflow/scripts/roadmap_parse.ts sprint --json ~/.cache/roadmap-workflow/roadmap-latest.json --date "2/17/2026"
 ```

@@ -24,6 +24,7 @@
         pkgs.gh
         pkgs.gleam
         pkgs.go
+        pkgs.go-task
         pkgs.google-cloud-sql-proxy
         pkgs.gron
         pkgs.htop
@@ -166,7 +167,6 @@
 
     workConfiguration = { pkgs, ... }: {
       environment.systemPackages = [
-        pkgs.golangci-lint
         pkgs.graphviz
         pkgs.grpcurl
         pkgs.cue
@@ -176,6 +176,8 @@
         pkgs.python310
         pkgs.circleci-cli
         pkgs.playwright-test
+        pkgs.pulumi
+        pkgs.pulumiPackages.pulumi-go
         (pkgs.writeShellScriptBin "rustup" ''
           exec ${pkgs.rustup}/bin/rustup "$@"
         '')
@@ -187,12 +189,15 @@
         onActivation.cleanup = "zap";
 
         taps = [
+          "dagger/tap"
           "golangci/tap"
           "puma/puma"
         ];
 
         brews = [
+          "dagger/tap/dagger"
           "git-xargs"
+          "golangci/tap/golangci-lint"
           "hashicorp/tap/vault"
           "puma-dev"
           "rbenv"
