@@ -688,26 +688,36 @@ fn flush_table(result: &mut Vec<String>, in_table: &mut bool, table_rows: &mut V
     }
 
     result.push("<table><tbody>".to_string());
-    for (i, row) in table_rows.drain(..).enumerate() {
-        let cells = row.split('|').skip(1).map(str::trim).collect::<Vec<_>>();
+    let mut rendered_row_index = 0usize;
+    for row in table_rows.drain(..) {
+        let cells = row
+            .trim()
+            .trim_matches('|')
+            .split('|')
+            .map(str::trim)
+            .collect::<Vec<_>>();
 
         if cells.is_empty() {
             continue;
         }
 
-        if cells
-            .iter()
-            .all(|cell| cell.replace('-', "").trim().is_empty())
-        {
+        let is_separator_row = cells.iter().all(|cell| {
+            !cell.is_empty()
+                && cell
+                    .chars()
+                    .all(|ch| ch == '-' || ch == ':' || ch.is_whitespace())
+        });
+        if is_separator_row {
             continue;
         }
 
         result.push("<tr>".to_string());
-        let tag = if i == 0 { "th" } else { "td" };
+        let tag = if rendered_row_index == 0 { "th" } else { "td" };
         for cell in cells {
             result.push(format!("<{tag}>{}</{tag}>", process_inline(cell)));
         }
         result.push("</tr>".to_string());
+        rendered_row_index += 1;
     }
     result.push("</tbody></table>".to_string());
     *in_table = false;
@@ -1057,6 +1067,20 @@ mod tests {
         assert!(output.contains("<h1>Title</h1>"));
         assert!(output.contains("<ul>"));
         assert!(output.contains("ac:structured-macro ac:name=\"code\""));
+    }
+
+    #[test]
+    fn markdown_to_storage_converts_tables_without_separator_row_or_trailing_empty_column() {
+        let input = "| query | A tracked searches | A revenue |\n|---|---:|---:|\n| zellige | 1387 | $4,708.17 |";
+        let output = markdown_to_storage(input);
+
+        assert!(output.contains("<table><tbody>"), "output was: {output}");
+        assert!(output.contains("<th>query</th>"), "output was: {output}");
+        assert!(output.contains("<th>A tracked searches</th>"), "output was: {output}");
+        assert!(output.contains("<td>zellige</td>"), "output was: {output}");
+        assert!(!output.contains("<td>---</td>"), "output was: {output}");
+        assert!(!output.contains("<th></th>"), "output was: {output}");
+        assert!(!output.contains("<td></td>"), "output was: {output}");
     }
 
     #[test]
