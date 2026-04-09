@@ -30,9 +30,9 @@
     AGENT_PROFILE = "personal";
   };
 
-  # Sync generated harness instruction files during activation.
-  home.activation.syncAgentInstructions = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    run env PATH="/usr/bin:/bin:/usr/sbin:/sbin:$PATH" ${pkgs.cargo}/bin/cargo run --quiet --manifest-path ${config.home.homeDirectory}/.config/nix-darwin/scripts/agent-config-sync/Cargo.toml -- --profile personal
+  # Sync generated harness instruction files during activation, then mirror Pi into OMP.
+  home.activation.syncAgentInstructions = lib.hm.dag.entryAfter [ "ensureOmpInstalled" ] ''
+    run ${config.home.homeDirectory}/.local/bin/sync-agent-harnesses personal
   '';
 
   programs.zsh = {

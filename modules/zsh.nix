@@ -25,6 +25,12 @@
     $DRY_RUN_CMD mkdir -p "$HOME/.cache/terraform/plugin-cache"
   '';
 
+  home.activation.ensureOmpInstalled = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    if [ ! -x "$HOME/.local/bin/omp" ] || [ ! -f "$HOME/.local/bin/pi_natives.darwin-arm64.node" ]; then
+      run "$HOME/.local/bin/install-omp"
+    fi
+  '';
+
   # Non-interactive-compatible wrapper (aliases are interactive-shell only)
   home.file.".local/bin/fdu" = {
     executable = true;
@@ -180,6 +186,46 @@
     '';
   };
 
+  home.file.".local/bin/install-omp" = {
+    source = ../scripts/install-omp.sh;
+    executable = true;
+  };
+
+  home.file.".local/bin/sync-omp-from-pi" = {
+    force = true;
+    executable = true;
+    text = ''
+      #!/usr/bin/env bash
+      set -euo pipefail
+      exec /usr/bin/python3 "$HOME/.config/nix-darwin/scripts/sync-omp-from-pi.py" "$@"
+    '';
+  };
+
+  home.file.".local/bin/sync-agent-harnesses" = {
+    executable = true;
+    text = ''
+      #!/usr/bin/env bash
+      set -euo pipefail
+
+      PROFILE="''${1:-''${AGENT_PROFILE:-personal}}"
+
+      ${pkgs.cargo}/bin/cargo run --quiet --manifest-path "$HOME/.config/nix-darwin/scripts/agent-config-sync/Cargo.toml" -- --profile "$PROFILE"
+      "$HOME/.local/bin/sync-omp-from-pi"
+
+      if [ -f "$HOME/.omp/agent/extensions/package.json" ]; then
+        if [ ! -d "$HOME/.omp/agent/extensions/node_modules" ] || [ "$HOME/.omp/agent/extensions/package.json" -nt "$HOME/.omp/agent/extensions/bun.lock" ]; then
+          ${pkgs.bun}/bin/bun install --silent --cwd "$HOME/.omp/agent/extensions"
+        fi
+      fi
+    '';
+  };
+
+  home.file.".omp/agent/sync-from-pi.py" = {
+    force = true;
+    source = ../scripts/sync-omp-from-pi.py;
+    executable = true;
+  };
+
   home.shellAliases = {
     ".." = "cd ..";
     "..." = "cd ../..";
@@ -200,13 +246,14 @@
 
     ns = "sudo darwin-rebuild switch --flake ~/.config/nix-darwin";
 
-    tc = "tmux new-session claude";
+    tc = "tmux new-session -c \"$PWD\" claude";
     tn = "tmux new-session";
     ta = "tmux attach";
-    tp = "tmux new-session pi";
-    tx = "tmux new-session codex";
+    tp = "tmux new-session \"pi --session-dir /Users/leonardo.gavaudan/.pi/agent/sessions/global\"";
+    to = "tmux new-session -c \"$PWD\" 'omp --allow-home'";
+    tx = "tmux new-session -c \"$PWD\" codex";
 
-    sync-agent-instructions = "cargo run --quiet --manifest-path ~/.config/nix-darwin/scripts/agent-config-sync/Cargo.toml -- --profile $AGENT_PROFILE";
+    sync-agent-instructions = "sync-agent-harnesses";
     sync-agents = "sync-agent-instructions";
   };
 
