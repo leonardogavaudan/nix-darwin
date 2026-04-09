@@ -36,7 +36,7 @@ targets:
     section_replacements:
       "Knowledge Discovery (Check Before Exploring)": |
         Before grepping codebases or reading source files to understand something, ALWAYS:
-        1. Check `~/master/INDEX.md` for relevant vault docs
+        1. Check `~/master/` for relevant vault docs
         2. Search Confluence using MCP tools (`mcp__atlassian__confluence_search`)
 
         **Triggers - do this when:**

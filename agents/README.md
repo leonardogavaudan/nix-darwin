@@ -16,6 +16,20 @@ Where:
 - `<scope>` is `shared`, `personal`, or `work`
 - `<target>` is `common`, `pi`, `claude`, or `codex`
 
+## OMP / oh-my-pi bridge
+
+`agent-config-sync` still treats Pi as the source-of-truth harness for the Pi/OMP setup.
+
+OMP is mirrored separately by `scripts/sync-omp-from-pi.py`, which runs after the normal layered sync and copies/links the generated Pi resources into `~/.omp/agent`:
+
+- `AGENTS.md` -> mirrored from Pi
+- `skills`, `hooks`, `commands`, `models.json`, `mcp` -> mirrored from Pi
+- `sessions`, `terminal-sessions`, `history.db`, `blobs` -> shared with Pi via symlinks
+- `SYSTEM.md`, `config.yml`, `agent.db` -> generated for OMP
+- `extensions` -> mirrored from the Pi extension directory, with a local compatibility package root for Pi-style imports
+
+So OMP is **not** a first-class layered target here; it is a Pi-backed bridge.
+
 ## Profile selection
 
 By default, profile comes from `$AGENT_PROFILE` (fallback: `personal`).

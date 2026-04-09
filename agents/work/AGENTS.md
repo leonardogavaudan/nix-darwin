@@ -36,10 +36,12 @@ System is managed declaratively with **nix-darwin** + **home-manager**.
   - **Pi:** `~/.pi/agent/AGENTS.md`
   - **Claude Code:** `~/.claude/CLAUDE.md`
   - **Codex CLI:** `${CODEX_HOME:-~/.config/codex}/AGENTS.md`
+  - **OMP / oh-my-pi:** `~/.omp/agent/{AGENTS.md,SYSTEM.md,config.yml}` (mirrored from Pi by `~/.config/nix-darwin/scripts/sync-omp-from-pi.py`; sessions/history are shared with Pi)
 - **Sync binary source:** `~/.config/nix-darwin/scripts/agent-config-sync/Cargo.toml`
+- **OMP bridge source:** `~/.config/nix-darwin/scripts/sync-omp-from-pi.py`
 - **How to update:** edit layered files, then either:
   - `darwin-rebuild switch` (syncs automatically via home.activation hook)
-  - `sync-agent-instructions` (manual alias)
+  - `sync-agent-instructions` (manual alias; now also refreshes OMP)
 - **Repo-level files** (e.g., `repo/AGENTS.md`, `repo/CLAUDE.md`) are separate and not touched by this sync.
 - Do **not** edit generated files directly.
 
@@ -51,11 +53,13 @@ System is managed declaratively with **nix-darwin** + **home-manager**.
   - `~/.pi/agent/{skills,hooks,prompts}` (commands sync to `prompts`)
   - `~/.claude/{skills,hooks,commands}`
   - `${CODEX_HOME:-~/.config/codex}/{skills,hooks,prompts}` (commands sync to `prompts`)
+  - `~/.omp/agent/{skills,hooks,commands}` via the Pi-backed OMP mirror
 - **Merge order (per target):**
   1. `shared/<kind>/common`
   2. `shared/<kind>/<target>`
   3. `work/<kind>/common`
   4. `work/<kind>/<target>`
+- **OMP note:** OMP is not a separate layered target yet; it reuses the Pi outputs plus OMP-specific generated files.
 - **How to update:** edit/add skills, hooks, or commands in layered source dirs, then run `sync-agent-instructions` (or `darwin-rebuild switch`).
 - Do **not** edit generated harness directories directly.
 
@@ -63,6 +67,7 @@ System is managed declaratively with **nix-darwin** + **home-manager**.
 - Prefer verbose explanations by default (unless I explicitly ask for short answers).
 - Include concrete code snippets when explaining implementation details or tradeoffs.
 - For PR/comment discussions, explain rationale, alternatives, and practical impact with code examples.
+- For diagram creation in Pi/Excalidraw, **prefer Mermaid first** (draft Mermaid yourself if needed), and only fall back to hand-built Excalidraw JSON/manual layouts when Mermaid is a poor fit.
 - **Always use `YYYY/MM/DD` for calendar dates in responses** (e.g., `2026/03/03`), unless I explicitly ask for a different format.
 - **When referencing quarters at Algolia, always use the "tE FY'XX" format** (e.g., "Q4 tE FY'26" instead of just "Q4"). "tE" = "the End" of the fiscal year.
 
@@ -72,7 +77,7 @@ System is managed declaratively with **nix-darwin** + **home-manager**.
 
 ## Knowledge Discovery (Check Before Exploring)
 Before grepping codebases or reading source files to understand something, ALWAYS:
-1. Check `~/master/INDEX.md` for relevant vault docs
+1. Check `~/master/` for relevant vault docs
 2. Search Confluence using Atlassian tools (`atlassian_confluence_search`)
 
 **Triggers - do this when:**
@@ -158,7 +163,7 @@ When a tool or package needs to be installed:
 
 ## Skills
 Load relevant skills before taking action (GCP, GitHub, browser, worktrees, Jira, React, etc.).
-Skills are synced from layered directories under `~/.config/nix-darwin/agents/{shared,work}/skills/{common,pi,claude,codex}` into harness skill folders (`~/.pi/agent/skills`, `~/.claude/skills`, `$CODEX_HOME/skills`).
+Skills are synced from layered directories under `~/.config/nix-darwin/agents/{shared,work}/skills/{common,pi,claude,codex}` into harness skill folders (`~/.pi/agent/skills`, `~/.claude/skills`, `$CODEX_HOME/skills`), and then mirrored into `~/.omp/agent/skills` via the Pi-backed OMP bridge.
 Check available skill descriptions for the current harness to find the right one.
 
 ## Verifying Work
@@ -189,7 +194,7 @@ The vault is a persistent knowledge base about Algolia systems, architecture, an
 
 1. **Filesystem as memory**: Important context learned in conversations should be persisted, not lost when sessions end
 2. **Iterative improvement**: Each session is an opportunity to improve the knowledge base - don't just consume, contribute
-3. **Discovery before deep exploration**: Check `~/master/INDEX.md` before exploring a topic to see if docs already exist
+3. **Discovery before deep exploration**: Check `~/master/` before exploring a topic to see if docs already exist
 4. **Architecture before organizing**: Before suggesting where new information should go, read `~/master/Knowledge Architecture.md`
 
 ## When to Write to Vault
@@ -211,7 +216,7 @@ The vault is a persistent knowledge base about Algolia systems, architecture, an
 
 1. **Be proactive** - Don't ask permission, just improve the vault. Create files, directories, restructure as needed.
 2. **Check before creating** - Make sure a file/dir doesn't already exist to avoid duplicates
-3. **Keep INDEX.md updated** - Always update when adding/moving/renaming content
+3. **Keep cross-links current** - Update relevant docs/links when adding, moving, or renaming content
 4. **Reorganize freely** - If the structure could be better, change it. Create subdirs, move files, consolidate docs.
 5. **Inform, don't ask** - Tell the user what you did ("Added X to vault", "Created Y directory"), don't ask if you should
 
@@ -219,8 +224,8 @@ The vault is a persistent knowledge base about Algolia systems, architecture, an
 
 See **Knowledge Discovery** rule above. When checking the vault:
 
-1. Check the "When to Read" column in INDEX.md for relevant docs — then actually read them
-2. If a doc might exist but isn't obvious in INDEX, use the `qmd` skill to search semantically
+1. Browse or search `~/master/` for relevant docs — then actually read them
+2. If a doc might exist but isn't obvious, use the `qmd` skill to search semantically
 3. Only explore codebases/external sources if vault doesn't have what you need
 
 ---
