@@ -4,8 +4,10 @@ pages:
   _folder_data: '6590267413'
   _folder_go: '6700957840'
   _folder_incidents: '6635651278'
+  _folder_misc: '6857064466'
   _folder_offline-evaluations: '6640762915'
   _folder_suggested-actions: '6590365731'
+  _folder_support: '6972932126'
   algolia/algolia-index-settings.md: '6446186583'
   algolia/algolia-infrastructure-and-observability-overview.md: '6590759018'
   algolia/algolia-product-architecture.md: '6445695024'
@@ -16,8 +18,10 @@ pages:
   data/data-warehousing-and-algolia-data-repo.md: '6590201872'
   data/dim-application.md: '6591414311'
   data/salesforce-application-mapping.md: '6590857234'
+  data/search-api-raw-logs-objects-vs-writes.md: '6820724763'
   go/semantic/phantom-null-rows.md: '6701547634'
   incidents/2026-01-28-analytics-api-503-retry-storm.md: '6635421892'
+  misc/optim-2395-payload-flow.md: '6856671271'
   offline-evaluations/optim-2247-admin-dashboard-settings.md: '6639779882'
   suggested-actions/datamixer.md: '6444843039'
   suggested-actions/drr-eligibility-filtering.md: '6445662244'
@@ -26,6 +30,7 @@ pages:
   suggested-actions/neural-search-eligibility-filtering.md: '6445858828'
   suggested-actions/one-shot-script.md: '6444908563'
   suggested-actions/suggested-actions-status.md: '6491242502'
+  support/2026-04-09-floor-and-decor-ab-test-search-aggregates-investigation.md: '6971916359'
 space_key: ~712020024fac75264b406693a5228fc3623b5f
 confluence_base: https://algolia.atlassian.net/wiki
 jira_base: https://algolia.atlassian.net/browse

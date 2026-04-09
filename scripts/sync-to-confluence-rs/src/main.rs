@@ -39,6 +39,7 @@ const FILES_TO_SYNC: &[&str] = &[
     "data/Algolia Data Sources and Available Data.md",
     "data/dim_application.md",
     "data/salesforce-application-mapping.md",
+    "data/search-api-raw-logs-objects-vs-writes.md",
     "incidents/2026-01-28 Analytics API 503 Retry Storm.md",
     "offline-evaluations/optim-2247-admin-dashboard-settings.md",
     "go/semantic/phantom-null-rows.md",
