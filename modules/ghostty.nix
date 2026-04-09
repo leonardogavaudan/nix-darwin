@@ -7,8 +7,9 @@
     enableZshIntegration = true;
     settings = {
       theme = "Catppuccin Mocha";
-      palette = "8=#1e1e2e";
-      background = "040a12";
+      # Keep dim syntax/punctuation readable against the theme background.
+      # Pi/tmux often render punctuation and secondary tokens with ANSI color 8.
+      palette = "8=#7f849c";
       font-size = 15;
       font-family = "CommitMono";
       macos-option-as-alt = true;
@@ -18,7 +19,6 @@
         "option+backspace=text:\\x1b[127;3u"
         "shift+backspace=text:\\x7f"
         "shift+space=text: "
-        "shift+enter=text:\\n"
 
         # Pass Rectangle shortcuts through to macOS
         "ctrl+alt+left=ignore"

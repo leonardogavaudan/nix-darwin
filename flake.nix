@@ -76,6 +76,8 @@
           "font-commit-mono-nerd-font"
           "font-droid-sans-mono-nerd-font"
           "font-fira-code-nerd-font"
+          "font-google-sans-code"
+          "font-inconsolata-go-nerd-font"
           "font-inconsolata-nerd-font"
           "font-iosevka-nerd-font"
           "font-jetbrains-mono-nerd-font"
