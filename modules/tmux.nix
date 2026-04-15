@@ -28,9 +28,10 @@
       bind-key -T copy-mode-vi . send-keys -X scroll-down
       bind-key r source-file ~/.config/tmux/tmux.conf \; display-message "Config reloaded!"
 
-      # Enable extended keys (CSI-u / kitty protocol)
-      set -g extended-keys on
-      set -g extended-keys-format csi-u
+      # Enable extended keys. Force tmux to emit CSI-u instead of xterm
+      # modifyOtherKeys sequences so TUIs like Pi can recognize Ctrl bindings.
+      set -s extended-keys always
+      set -s extended-keys-format csi-u
       set -as terminal-features 'tmux-256color:extkeys'
       set -as terminal-features 'xterm-ghostty:extkeys'
       set -as terminal-features 'xterm-256color:extkeys'
