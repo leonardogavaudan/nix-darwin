@@ -246,7 +246,7 @@
 
     ns = "sudo darwin-rebuild switch --flake ~/.config/nix-darwin";
 
-    tc = "tmux new-session -c \"$PWD\" claude";
+    tc = "tmux new-session -c \"$PWD\" 'claude --effort max'";
     tn = "tmux new-session";
     ta = "tmux attach";
     tp = "tmux new-session \"pi --session-dir /Users/leonardo.gavaudan/.pi/agent/sessions/global\"";
