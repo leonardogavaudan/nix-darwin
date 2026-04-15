@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Ensure system binaries are available (PATH may be stripped during HM activation)
+export PATH="/usr/bin:/usr/local/bin:$PATH"
+
 OMP_VERSION="${OMP_VERSION:-v13.12.8}"
 OMP_BUN_VERSION="${OMP_BUN_VERSION:-bun-v1.3.10}"
 BIN_DIR="${HOME}/.local/bin"
