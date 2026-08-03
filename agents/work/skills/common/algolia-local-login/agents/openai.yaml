@@ -1,0 +1,4 @@
+interface:
+  display_name: "Algolia Local Login"
+  short_description: "Sign into beta-backed AlgoliaWeb locally"
+  default_prompt: "Use $algolia-local-login to sign into a beta-backed local AlgoliaWeb frontend."

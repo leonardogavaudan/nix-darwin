@@ -166,6 +166,11 @@ Load relevant skills before taking action (GCP, GitHub, browser, worktrees, Jira
 Skills are synced from layered directories under `~/.config/nix-darwin/agents/{shared,work}/skills/{common,pi,claude,codex}` into harness skill folders (`~/.pi/agent/skills`, `~/.claude/skills`, `$CODEX_HOME/skills`), and then mirrored into `~/.omp/agent/skills` via the Pi-backed OMP bridge.
 Check available skill descriptions for the current harness to find the right one.
 
+## AlgoliaWeb Local Authentication
+
+- For authenticated local AlgoliaWeb UI work, always load and use the `algolia-local-login` skill.
+- Default to a frontend-only preview against the beta Dashboard backend. Do not start the local Rails backend unless the user explicitly asks for it.
+
 ## Verifying Work
 - When appropriate, use the browser to verify your work visually rather than assuming it's correct
 - Don't just trust code changes - check if they actually work when possible
