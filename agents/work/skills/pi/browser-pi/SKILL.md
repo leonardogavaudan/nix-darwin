@@ -26,6 +26,7 @@ npm install
 
 Launches **Brave** with remote debugging on `:9222` (Brave-only workflow).
 Use `--profile` to preserve authentication state from the Brave profile.
+The profile refresh preserves Browser Pi's own 1Password local settings and IndexedDB. Keep desktop-app integration disabled in this automation profile so local-login automation can unlock independently without a native password dialog; the normal Brave profile is unaffected.
 By default this starts in the background to avoid stealing focus. Pass `--focus` when foreground is needed.
 
 ## List Tabs

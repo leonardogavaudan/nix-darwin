@@ -23,6 +23,7 @@ const browserApp = "/Applications/Brave Browser.app";
 const browserBinary = "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser";
 const profileSource = `${process.env.HOME}/Library/Application Support/BraveSoftware/Brave-Browser/`;
 const SCRAPING_DIR = `${process.env.HOME}/.cache/browser-pi`;
+const ONE_PASSWORD_EXTENSION_ID = "aeblfdkhhhdcdjpifhhbdiojplfjncoa";
 
 if (!existsSync(browserBinary)) {
 	console.error(`✗ ${browserName} binary not found at: ${browserBinary}`);
@@ -68,6 +69,8 @@ if (useProfile) {
 			--exclude='*/Current Tabs' \
 			--exclude='*/Last Session' \
 			--exclude='*/Last Tabs' \
+			--exclude='Default/Local Extension Settings/${ONE_PASSWORD_EXTENSION_ID}/' \
+			--exclude='Default/IndexedDB/chrome-extension_${ONE_PASSWORD_EXTENSION_ID}_0.indexeddb.leveldb/' \
 			"${profileSource}" "${SCRAPING_DIR}/"`,
 		{ stdio: "pipe" },
 	);

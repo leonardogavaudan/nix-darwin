@@ -1,8 +1,7 @@
 import { execFile } from 'node:child_process';
-import { networkInterfaces } from 'node:os';
 import { promisify } from 'node:util';
 
-import puppeteer from 'puppeteer-core';
+import WebSocket from 'ws';
 
 const execFileAsync = promisify(execFile);
 
@@ -12,32 +11,193 @@ const EXTENSION_ORIGIN =
 const KEYCHAIN_ACCOUNT = 'leonardo.gavaudan@algolia.com';
 const KEYCHAIN_SERVICE = 'algolia-1password-unlock';
 const DEFAULT_APPLICATION_ID = 'F4T6CUV2AH';
+const EXTENSION_CONTEXT_URL = `${EXTENSION_ORIGIN}/inline/notification/notification.html?language=en`;
+const EXTENSION_CONTEXT_TIMEOUT_MS = 5_000;
 
-const getPrivateIpv4Address = () => {
-  const address = Object.values(networkInterfaces())
-    .flat()
-    .find(
-      (candidate) =>
-        candidate?.family === 'IPv4' &&
-        !candidate.internal &&
-        /^(10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.)/.test(candidate.address),
-    )?.address;
+const connectCdp = async (url) => {
+  const socket = new WebSocket(url);
+  const pending = new Map();
+  let nextId = 1;
 
-  if (!address) {
-    throw new Error('No private IPv4 address is available for the local frontend');
+  await new Promise((resolve, reject) => {
+    socket.addEventListener('open', resolve, { once: true });
+    socket.addEventListener('error', reject, { once: true });
+  });
+
+  socket.addEventListener('message', (event) => {
+    const message = JSON.parse(String(event.data));
+    const request = pending.get(message.id);
+    if (!request) return;
+
+    pending.delete(message.id);
+    if (message.error) request.reject(new Error(message.error.message));
+    else request.resolve(message.result);
+  });
+
+  return {
+    close: () => socket.close(),
+    send: (method, params = {}) =>
+      new Promise((resolve, reject) => {
+        const id = nextId++;
+        pending.set(id, { resolve, reject });
+        socket.send(JSON.stringify({ id, method, params }));
+      }),
+  };
+};
+
+const createExtensionContext = async () => {
+  const version = await fetch(`${CDP_URL}/json/version`).then((response) => response.json());
+  const browserCdp = await connectCdp(version.webSocketDebuggerUrl);
+  let targetCdp;
+  let targetId;
+
+  try {
+    ({ targetId } = await browserCdp.send('Target.createTarget', {
+      url: EXTENSION_CONTEXT_URL,
+      background: true,
+    }));
+
+    const startedAt = Date.now();
+    let target;
+    while (Date.now() - startedAt < EXTENSION_CONTEXT_TIMEOUT_MS) {
+      const targets = await fetch(`${CDP_URL}/json/list`).then((response) => response.json());
+      target = targets.find((candidate) => candidate.id === targetId);
+      if (target?.webSocketDebuggerUrl) break;
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+
+    if (!target?.webSocketDebuggerUrl) {
+      throw new Error('1Password extension context did not become available');
+    }
+
+    targetCdp = await connectCdp(target.webSocketDebuggerUrl);
+
+    return {
+      evaluateMessage: async (message) => {
+        const evaluation = await targetCdp.send('Runtime.evaluate', {
+          expression: `chrome.runtime.sendMessage(${JSON.stringify(message)})`,
+          awaitPromise: true,
+          returnByValue: true,
+        });
+
+        if (evaluation.exceptionDetails) {
+          throw new Error('1Password extension message evaluation failed');
+        }
+
+        return evaluation.result.value;
+      },
+      close: async () => {
+        targetCdp.close();
+        await browserCdp.send('Target.closeTarget', { targetId });
+        browserCdp.close();
+      },
+    };
+  } catch (error) {
+    targetCdp?.close();
+    if (targetId) await browserCdp.send('Target.closeTarget', { targetId });
+    browserCdp.close();
+    throw error;
+  }
+};
+
+const isTargetOnHost = (target, host, port) => {
+  if (target.type !== 'page') return false;
+
+  try {
+    const url = new URL(target.url);
+    return url.hostname === host && url.port === String(port);
+  } catch {
+    return false;
+  }
+};
+
+const waitForTarget = async (targetId) => {
+  const startedAt = Date.now();
+  while (Date.now() - startedAt < EXTENSION_CONTEXT_TIMEOUT_MS) {
+    const targets = await fetch(`${CDP_URL}/json/list`).then((response) =>
+      response.json(),
+    );
+    const target = targets.find((candidate) => candidate.id === targetId);
+    if (target?.webSocketDebuggerUrl) return target;
+    await new Promise((resolve) => setTimeout(resolve, 100));
   }
 
-  return address;
+  throw new Error('Browser target did not become available');
+};
+
+const createPageContext = async ({ host, port }) => {
+  const version = await fetch(`${CDP_URL}/json/version`).then((response) =>
+    response.json(),
+  );
+  const browserCdp = await connectCdp(version.webSocketDebuggerUrl);
+  let targetCdp;
+  let prepared = false;
+  let newDocumentScriptIdentifier;
+
+  try {
+    const targets = await fetch(`${CDP_URL}/json/list`).then((response) =>
+      response.json(),
+    );
+    let target = targets.find((candidate) =>
+      isTargetOnHost(candidate, host, port),
+    );
+
+    if (!target) {
+      const { targetId } = await browserCdp.send('Target.createTarget', {
+        url: 'about:blank',
+        background: true,
+      });
+      target = await waitForTarget(targetId);
+    }
+
+    targetCdp = await connectCdp(target.webSocketDebuggerUrl);
+
+    return {
+      activate: () =>
+        browserCdp.send('Target.activateTarget', { targetId: target.id }),
+      close: async () => {
+        if (newDocumentScriptIdentifier) {
+          try {
+            await targetCdp.send('Page.removeScriptToEvaluateOnNewDocument', {
+              identifier: newDocumentScriptIdentifier,
+            });
+          } catch {
+            // The page may have closed while the login was running.
+          }
+        }
+        targetCdp.close();
+        browserCdp.close();
+      },
+      evaluate: async (expression) => {
+        const evaluation = await targetCdp.send('Runtime.evaluate', {
+          expression,
+          awaitPromise: true,
+          returnByValue: true,
+        });
+        if (evaluation.exceptionDetails) {
+          throw new Error('Local page evaluation failed');
+        }
+        return evaluation.result.value;
+      },
+      isPrepared: () => prepared,
+      markPrepared: (identifier) => {
+        prepared = true;
+        newDocumentScriptIdentifier = identifier;
+      },
+      send: (method, params = {}) => targetCdp.send(method, params),
+    };
+  } catch (error) {
+    targetCdp?.close();
+    browserCdp.close();
+    throw error;
+  }
 };
 
 const getResponseData = (response) =>
   response?.type === 'Success' ? response.data : response;
 
-const sendExtensionMessage = (extensionPage, message) =>
-  extensionPage.evaluate(
-    async (payload) => chrome.runtime.sendMessage(payload),
-    message,
-  );
+const sendExtensionMessage = (extensionContext, message) =>
+  extensionContext.evaluateMessage(message);
 
 const getKeychainPassword = async () => {
   const { stdout } = await execFileAsync(
@@ -61,6 +221,19 @@ const getKeychainPassword = async () => {
   return password;
 };
 
+const assertIndependentExtensionUnlock = async (extensionContext) => {
+  const configurationResponse = await sendExtensionMessage(extensionContext, {
+    name: 'get-settings-configuration',
+  });
+  const configuration = getResponseData(configurationResponse);
+
+  if (configuration?.useSharedLockState) {
+    throw new Error(
+      'Browser Pi still shares its lock state with the 1Password desktop app. Disable "Integrate this extension with the 1Password desktop app" in the Browser Pi profile before retrying',
+    );
+  }
+};
+
 const unlockExtension = async (extensionPage) => {
   const lockResponse = await sendExtensionMessage(extensionPage, {
     name: 'get-extension-locked',
@@ -70,7 +243,17 @@ const unlockExtension = async (extensionPage) => {
     typeof lockData === 'boolean' ? lockData : Boolean(lockData?.locked);
 
   if (!locked) {
-    return;
+    const accountResponse = await sendExtensionMessage(extensionPage, {
+      name: 'get-account-list',
+    });
+    const accounts = getResponseData(accountResponse);
+    const accountUuid = accounts?.find((account) => !account.locked)?.uuid ?? accounts?.[0]?.uuid;
+
+    if (!accountUuid) {
+      throw new Error('1Password account metadata is unavailable');
+    }
+
+    return accountUuid;
   }
 
   const password = await getKeychainPassword();
@@ -86,12 +269,19 @@ const unlockExtension = async (extensionPage) => {
   ) {
     throw new Error('1Password extension unlock failed');
   }
+
+  const accountUuid = unlockData?.accounts?.[0]?.uuid;
+  if (!accountUuid) {
+    throw new Error('1Password account metadata is unavailable after unlock');
+  }
+
+  return accountUuid;
 };
 
-const getBetaCredentials = async (extensionPage) => {
+const getBetaCredentials = async (extensionPage, accountUuid) => {
   const listResponse = await sendExtensionMessage(extensionPage, {
     name: 'get-item-list-entries',
-    data: { options: { searchEverywhere: true } },
+    data: { options: { accountUuid, searchEverywhere: true } },
   });
   const entries = getResponseData(listResponse);
   const item = entries?.find(
@@ -129,8 +319,8 @@ const getBetaCredentials = async (extensionPage) => {
   return { username, password };
 };
 
-const submitLogin = async (page, credentials) => {
-  const result = await page.evaluate(async ({ username, password }) => {
+const submitLogin = async (pageContext, credentials) => {
+  const result = await pageContext.evaluate(`(async ({ username, password }) => {
     const form = document.forms[0];
     const inputs = [...document.querySelectorAll('input')];
     const emailInput = inputs.find(
@@ -167,97 +357,161 @@ const submitLogin = async (page, credentials) => {
     });
 
     return { ok: true };
-  }, credentials);
+  })(${JSON.stringify(credentials)})`);
 
   if (!result.ok) {
     throw new Error(`Local login failed: ${result.reason}`);
   }
 };
 
-const prepareLocalPage = async (page) => {
-  const cdpSession = await page.createCDPSession();
-  await cdpSession.send('Network.enable');
-  await cdpSession.send('Network.setBlockedURLs', {
+const prepareLocalPage = async (pageContext) => {
+  if (pageContext.isPrepared()) return;
+
+  await pageContext.send('Network.enable');
+  await pageContext.send('Network.setBlockedURLs', {
     urls: ['*://*.hotjar.com/*', '*://*.hotjar.io/*'],
   });
-  await page.evaluateOnNewDocument(() => {
-    Object.defineProperty(window, 'HOTJAR_SITE_ID', {
-      value: 1,
-      writable: true,
-      configurable: true,
-    });
-
-    if (!crypto.randomUUID) {
-      crypto.randomUUID = () => {
-        const bytes = crypto.getRandomValues(new Uint8Array(16));
-        bytes[6] = (bytes[6] & 15) | 64;
-        bytes[8] = (bytes[8] & 63) | 128;
-
-        return [...bytes]
-          .map(
-            (byte, index) =>
-              `${[4, 6, 8, 10].includes(index) ? '-' : ''}${byte
-                .toString(16)
-                .padStart(2, '0')}`,
-          )
-          .join('');
-      };
-    }
+  const { identifier } = await pageContext.send(
+    'Page.addScriptToEvaluateOnNewDocument',
+    {
+      source: `(() => {
+  Object.defineProperty(window, 'HOTJAR_SITE_ID', {
+    value: 1,
+    writable: true,
+    configurable: true,
   });
+
+  if (!crypto.randomUUID) {
+    crypto.randomUUID = () => {
+      const bytes = crypto.getRandomValues(new Uint8Array(16));
+      bytes[6] = (bytes[6] & 15) | 64;
+      bytes[8] = (bytes[8] & 63) | 128;
+
+      return [...bytes]
+        .map(
+          (byte, index) =>
+            ([4, 6, 8, 10].includes(index) ? '-' : '') +
+            byte.toString(16).padStart(2, '0'),
+        )
+        .join('');
+    };
+  }
+})()`,
+    },
+  );
+  pageContext.markPrepared(identifier);
+};
+
+const navigate = async (pageContext, url) => {
+  const navigation = await pageContext.send('Page.navigate', { url });
+  if (navigation.errorText) {
+    throw new Error(`Navigation failed: ${navigation.errorText}`);
+  }
+
+  const startedAt = Date.now();
+  while (Date.now() - startedAt < 30_000) {
+    const metadata = await pageContext.evaluate(`({
+      readyState: document.readyState,
+      title: document.title,
+      url: location.href,
+    })`);
+    if (metadata?.readyState !== 'loading') return metadata;
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+
+  throw new Error('Local page navigation timed out');
+};
+
+const navigateToLocalTarget = async ({ pageContext, baseUrl, targetPath }) => {
+  await pageContext.activate();
+  await prepareLocalPage(pageContext);
+  await navigate(pageContext, `${baseUrl}${targetPath}`);
+  await new Promise((resolve) => setTimeout(resolve, 1_500));
+
+  return pageContext.evaluate(`({ title: document.title, url: location.href })`);
 };
 
 export const loginToAlgoliaLocal = async ({
   port,
-  host = getPrivateIpv4Address(),
+  host = 'localhost',
   applicationId = DEFAULT_APPLICATION_ID,
   targetPath = `/apps/${applicationId}/ab-tests/create`,
+  onStage,
 } = {}) => {
   if (!Number.isInteger(port) || port <= 0) {
     throw new Error('A valid local frontend port is required');
   }
 
-  const browser = await puppeteer.connect({
-    browserURL: CDP_URL,
-    defaultViewport: null,
-  });
-  const pages = await browser.pages();
-  const extensionPage = pages.find((page) =>
-    page.url().startsWith(EXTENSION_ORIGIN),
-  );
-
-  if (!extensionPage) {
-    throw new Error('Open the 1Password extension popup in Browser Pi first');
-  }
-
-  await unlockExtension(extensionPage);
-
-  const baseUrl = `http://${host}:${port}`;
-  const page =
-    pages.find((candidate) => candidate.url().startsWith(baseUrl)) ??
-    (await browser.newPage());
-
-  await page.bringToFront();
-  await prepareLocalPage(page);
-  await page.goto(`${baseUrl}/users/sign_in`, {
-    waitUntil: 'domcontentloaded',
-    timeout: 30_000,
-  });
-
-  const credentials = await getBetaCredentials(extensionPage);
-  await submitLogin(page, credentials);
-  await page.goto(`${baseUrl}${targetPath}`, {
-    waitUntil: 'domcontentloaded',
-    timeout: 30_000,
-  });
-  await new Promise((resolve) => setTimeout(resolve, 1_500));
-
-  if (page.url().includes('/users/sign_in')) {
-    throw new Error('Beta Dashboard credentials were rejected');
-  }
-
-  return {
-    ok: true,
-    url: page.url(),
-    title: await page.title(),
+  let pageContext;
+  let extensionContext;
+  let stage = 'connecting to Browser Pi';
+  const markStage = (nextStage) => {
+    stage = nextStage;
+    onStage?.(nextStage);
   };
+
+  try {
+    markStage(stage);
+    const baseUrl = `http://${host}:${port}`;
+    pageContext = await createPageContext({ host, port });
+
+    markStage('reusing the local Dashboard session');
+    const sessionMetadata = await navigateToLocalTarget({
+      pageContext,
+      baseUrl,
+      targetPath,
+    });
+    if (!sessionMetadata.url.includes('/users/sign_in')) {
+      return {
+        ok: true,
+        reusedSession: true,
+        url: sessionMetadata.url,
+        title: sessionMetadata.title,
+      };
+    }
+
+    markStage('opening the local sign-in page');
+    await navigate(pageContext, `${baseUrl}/users/sign_in`);
+
+    markStage('creating a stable 1Password context');
+    extensionContext = await createExtensionContext();
+    markStage('checking the Browser Pi 1Password configuration');
+    await assertIndependentExtensionUnlock(extensionContext);
+    markStage('unlocking the 1Password extension');
+    const accountUuid = await unlockExtension(extensionContext);
+    markStage('reading the beta Dashboard login item');
+    const credentials = await getBetaCredentials(extensionContext, accountUuid);
+    markStage('submitting the local sign-in form');
+    await submitLogin(pageContext, credentials);
+    markStage('opening the authenticated local route');
+    const authenticatedMetadata = await navigateToLocalTarget({
+      pageContext,
+      baseUrl,
+      targetPath,
+    });
+    if (authenticatedMetadata.url.includes('/users/sign_in')) {
+      throw new Error('Beta Dashboard credentials were rejected');
+    }
+
+    return {
+      ok: true,
+      reusedSession: false,
+      url: authenticatedMetadata.url,
+      title: authenticatedMetadata.title,
+    };
+  } catch (error) {
+    throw new Error(
+      `Algolia local login failed while ${stage}: ${
+        error instanceof Error ? error.message : String(error)
+      }`,
+      { cause: error },
+    );
+  } finally {
+    try {
+      await extensionContext?.close();
+    } catch {
+      // The temporary target may already have closed after an extension error.
+    }
+    await pageContext?.close();
+  }
 };
