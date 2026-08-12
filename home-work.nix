@@ -101,8 +101,10 @@
 
   programs.git.settings = {
     init.defaultBranch = "main";
-    url."https://github.com/".insteadOf = "ssh://git@github.com/";
-    url."git@github.com:".insteadOf = "https://github.com/";
+    url."https://github.com/".insteadOf = [
+      "git@github.com:"
+      "ssh://git@github.com/"
+    ];
   };
 
 }
