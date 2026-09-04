@@ -150,7 +150,6 @@
           "messenger"
           "signal"
           "tailscale-app"
-          "warp"
         ];
       };
 
