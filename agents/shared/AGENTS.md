@@ -39,6 +39,8 @@ Managed dotfiles are read-only symlinks created by Home Manager: zsh files live 
 ## User Info
 
 - Email: leonardogavaudan@gmail.com
+- Work email: leonardo.gavaudan@algolia.com
+- Phone: +33 6 74 39 79 75
 - Address: 78 Rue du Cherche-Midi, 75006, Paris, France
 - Date of birth: 03/08/1998
 - Birthplace: London

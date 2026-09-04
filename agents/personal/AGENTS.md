@@ -24,6 +24,13 @@ Profile-specific instruction layer for personal machines.
   - Attach with `agent-browser connect 9223`.
   - If CDP is not running, `brave-cdp launch-default 9223 --force-quit` relaunches Brave on the real Default profile.
 - Avoid launching isolated browser profiles unless the task explicitly needs a clean session.
+- For Google services, prefer the local `gws` CLI/MCP tools over Codex Google plugins or app connectors.
+- The Gmail Codex plugin is intentionally uninstalled; do not reinstall or suggest it unless the user explicitly asks.
+- `gws` has two registered Google accounts:
+  - Personal: `leonardogavaudan@gmail.com`
+  - Work (Algolia): `leonardo.gavaudan@algolia.com`
+- Select the `gws` account explicitly with `GOOGLE_WORKSPACE_CLI_ACCOUNT` for each operation. Use the personal account when the request has no clear work context, and the work account for Algolia/work requests.
+- If the intended Google account is still ambiguous, ask before any send, write, delete, or other state-changing operation.
 <!-- END CODEX -->
 
 <!-- BEGIN PI -->
