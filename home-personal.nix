@@ -8,6 +8,7 @@
     ./modules/ghostty.nix
     ./modules/resource-monitor.nix
     ./modules/vault-sync.nix
+    ./modules/homebrew-trust.nix
   ];
 
   home.username = "leonardogavaudan";

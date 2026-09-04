@@ -209,6 +209,13 @@
 
       PROFILE="''${1:-''${AGENT_PROFILE:-personal}}"
 
+      # Home Manager activation runs with a nix-only PATH and without the
+      # shell's session variables. Cargo needs /usr/bin for the `cc` linker
+      # when it rebuilds, and the same CARGO_HOME as the interactive shell so
+      # it reuses the existing registry and build cache.
+      export PATH="$PATH:/usr/bin:/bin"
+      export CARGO_HOME="''${CARGO_HOME:-$HOME/.config/cargo}"
+
       ${pkgs.cargo}/bin/cargo run --quiet --manifest-path "$HOME/.config/nix-darwin/scripts/agent-config-sync/Cargo.toml" -- --profile "$PROFILE"
       "$HOME/.local/bin/sync-omp-from-pi"
 
