@@ -7,6 +7,7 @@
     ./modules/tmux.nix
     ./modules/ghostty.nix
     ./modules/resource-monitor.nix
+    ./modules/vault-sync.nix
   ];
 
   home.username = "leonardogavaudan";
