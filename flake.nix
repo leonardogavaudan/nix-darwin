@@ -132,6 +132,7 @@
         # GUI apps
         pkgs.anki
         pkgs.iterm2
+        pkgs.keepassxc
         pkgs.numi
       ];
 
